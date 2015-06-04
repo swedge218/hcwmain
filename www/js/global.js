@@ -6,10 +6,15 @@ var globalObj = {   //begin class
     appName : 'mTrain',
     
     loginMode : '', //whether the user logged in through test, training, profile or admin
+    loginByPassMode: false,
     
     usersCount : 0, //stores the number of users in the system
     
     sessionType: 0,  //sessionType: 1 - INDIVIDUAL SESSION, 2 - GROUP SESSION, 3 - TEST SESSION
+    
+    sessionUID : '', //logged in user ID(0 for group) concat date - H:M:S
+    
+    backButtonPressed: false,  //monitors if the back button was pressed on some pages
     
     videoMaterial: 1,
     guideMaterial: 2,  
@@ -35,6 +40,11 @@ var globalObj = {   //begin class
     firstTimeUse : true,    //remains true until otherwise proven not so
     
     currentPage : '',       //the id attribute of the current page
+    previousPage : '', //used to record the previous page visited. This will be used mostly with login
+    
+    currentProcess: '', //used to enter value for the current process the app is trying to achieve IFF needed though. e.g. registration process.
+    
+    
     
     /*
      *  SETUP
@@ -43,6 +53,7 @@ var globalObj = {   //begin class
     guidesDir : 'MTRAIN/Guides', //guides default directory on device
     jobaidsDir : 'MTRAIN/JobAids', //job aids default directory on device
     helpDir : 'MTRAIN/Help', //help default directory on device
+    
 
     profileStatDetailsView : false,
   
@@ -51,6 +62,7 @@ var globalObj = {   //begin class
    */
     videoPlaying : false,
     videoEnded : false,
+    videoMarked: false,
     videoPlayedList : new Array(),
     videoFile : '', 
     guideFile : '',
@@ -66,6 +78,10 @@ var globalObj = {   //begin class
   testID : 0,
   questionID: 0,  
   questionIDList:new Array(),
+  questionCountLimit: 10,
+  testMode: 0,  //1 - pre test, 2 - post test
+  //postTestMode: false,
+  preTestObj : '',
   
   
   //NOTIFICATIONS
@@ -133,3 +149,11 @@ var settingsObj = {   //begin class
     facilityAddrLine2 : '',
     facilityName : ''
 }// end class
+
+
+var TestSessionDetail = function(score, total, testid, workerid){
+    this.score = score;
+    this.total = total;
+    this.testID = testid;
+    this.workerID = workerid;
+}

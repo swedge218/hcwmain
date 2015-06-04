@@ -18,8 +18,8 @@ $( document ).delegate("#traininghomepage", "pageshow", function() {
             globalObj.db.transaction(
                     queryCategories,
                     function(error){
-                            console.log('Database error: ' + JSON.stringify(error));
-                        },
+                        console.log('Database error: ' + JSON.stringify(error));
+                    },
                     function(){
                         //set active sidebar element on click
                         $('#sidebar_ul li a').click(function(){
@@ -30,33 +30,34 @@ $( document ).delegate("#traininghomepage", "pageshow", function() {
                 );
         },200);
         
-            //////////  COLLAPSIBLE ...........
+       
+       //////////  COLLAPSIBLE ...........
+        //create little delay so that the querycategories completes and 
+        //does not overwrite stuff done by this block later
             if($("body").data('trainingHomeData')!=null){
-                //console.log('body data pageshow: ' + JSON.stringify($("body").data('trainingHomeData')));
-                //console.log('body data pageshow cat: ' + $("body").data('trainingHomeData')[0]);
-                //console.log('body data pageshow mod: ' + $("body").data('trainingHomeData')[1]);
-
-                //set the right category as active
-                $('#cat_'+$("body").data('trainingHomeData')[0]).addClass('active');
-                
-                //load the modules for the caategory selected
-                loadModule($("body").data('trainingHomeData')[0]);
-                
-                //expand the right module
-                
                 setTimeout(function(){
-                    $('div#coll_mod_'+ $("body").data('trainingHomeData')[1]).trigger("expand");
-                 },500);
+                    console.log('body data pageshow: ' + JSON.stringify($("body").data('trainingHomeData')));
+                    //console.log('body data pageshow cat: ' + $("body").data('trainingHomeData')[0]);
+                    //console.log('body data pageshow mod: ' + $("body").data('trainingHomeData')[1]);
+
+                    //set the right category as active
+                    data = $("body").data('trainingHomeData');
+                    console.log('data data pageshow: ' + data[0]);
+                    $('#cat_'+data[0]).addClass('active');
+
+                    //load the modules for the caategory selected
+                    loadModule($("body").data('trainingHomeData')[0]);
+
+
+                    //expand the right module
+                    setTimeout(function(){
+                        $('div#coll_mod_'+ $("body").data('trainingHomeData')[1]).trigger("expand");
+                     },300);
+                },300);
             }
-            //////////  COLLAPSIBLE ...........
-        
 
+        //////////  COLLAPSIBLE ...........
 
-});
-
-$( document ).delegate("#traininghomepage", "pagebeforeshow", function() {    
-    
-    
 });
 
 
@@ -87,71 +88,185 @@ $(document ).delegate("#traininghomepage", "pageinit", function() {
  });
 
 
-
-function moduleSlide(){
-        var animationSpeed = 600;
-        
-        
-        console.log($(this).parent())
-//        $(this).parent().slideToggle(animationSpeed,function () {
-//            // trigger original event and attach the animation again;
-//            console.log('animation triggered');
-//            $(this).parent().trigger("expand");
-//        });
-
-         
-}
-
 function queryCategories(tx){
     console.log('categoryID: ' + globalObj.categoryID + ' moduleID: ' + globalObj.moduleID + ' topicID: ' + globalObj.topicID);
         
     tx.executeSql('SELECT * FROM cthx_category',[],
-                function(tx,resultSet){  //query success callback
-                    var len = resultSet.rows.length;
-                    var html = '';  //'<ul id="sidebar_ul">';
-                    if(len>0){  //if not empty table
-                        for (var i=0; i<len; i++){
-                             var row = resultSet.rows.item(i);
-                             html += '<li>' +
-                                        '<a id="cat_' + row['category_id'] + '" href="" onclick="loadModule(' + row['category_id']+ '); return false;">' +
-                                            row['category_name']    +
-                                        '</a>' +
-                                     '</li>';
-                        }                        
-                    }
+        function(tx,resultSet){  //query success callback
+            var len = resultSet.rows.length;
+            var html = '';  //'<ul id="sidebar_ul">';
+            if(len>0){  //if not empty table
+                
+                //introductory video link
+                html += '<li><a href="" onclick="setUpIntroductoryVideo()">Introduction</a></li>';
+                
+                for (var i=0; i<len; i++){
+                     var row = resultSet.rows.item(i);
+                     html += '<li>' +
+                                '<a id="cat_' + row['category_id'] + '" href="" onclick="loadModule(' + row['category_id']+ '); return false;">' +
+                                    row['category_name']    +
+                                '</a>' +
+                             '</li>';
+                }                        
+            }
+
+            console.log('html: ' + html);
+
+            $('#sidebar_ul').html(html);
+            
+            
+            $('#' + globalObj.currentPage + ' #context-bar').parent().removeClass('hidden');
+            
+            //only fill the focus area with content when we 
+            //are coming to this page fresh
+            if($("body").data('trainingHomeData') == null){
+                setUpIntroductoryVideo();
+            }//end if
+             
                     
-                    console.log('html: ' + html);
-                    
-                    $('#sidebar_ul').html(html);
-                    
-                    
-                    
-                    //$("#traininghomepage").trigger("create");
-                    
-                }
-           );
+          });
  }
+
+
+function setUpIntroductoryVideo(){
+    $('#' + globalObj.currentPage + ' #context-bar').html("mTrain Introductory Video");
+    $('.focus-area').html('<div id="video-box" class="training-video ui-block floatleft width100" >' +
+                '<video width="420" height="315" controls="controls" id="cvideoscreen">' +
+                    '<source src="" type="video/mp4" />' +
+                '</video>' +
+            '</div>');
+
+    globalObj.videoFile = 'mtrain_intro_video.mp4';
+    attachCategoryVideoFile();
+}
+
+
+function attachCategoryVideoFile(){
+       //return;
+     
+       window.requestFileSystem(
+            LocalFileSystem.PERSISTENT, 0, 
+            function(fileSystem){
+                rootDirectoryEntry = fileSystem.root;
+                //alert('root: ' + fileSystem.root.fullPath);
+                
+                var filePath = globalObj.videoDir + "/Categories/" + globalObj.videoFile;
+                //alert('attachVideoFile filePath: ' + filePath);
+                 /*
+                    * This method (getFile) is used to look up a directory. It does not create a non-existent direcory.
+                    * Args:
+                    * DirectoryEntry object: provides file look up method
+                    * dirPath: path to directory to look up relative to DirectoryEntry
+                 */
+                
+                rootDirectoryEntry.getFile(
+                        filePath, {create: false}, 
+                        function(entry){
+                            //alert('cvideoscreen entry.toURL: '+ entry.toURL());
+                            if(!entry.isFile) return;
+                            
+                            
+                            if($('#video-box').hasClass('hidden')) $('#video-box').removeClass('hidden');
+                            if(!$('#msg-box').hasClass('hidden')) $('#msg-box').addClass('hidden');
+                            
+                            var video = document.getElementById("cvideoscreen");
+                            video.setAttribute('src',entry.toURL());
+                        },
+                        function(error){
+                            //alert("No Video Found: " + JSON.stringify(error) + "\n Switching to Default Video.");
+                            //alert("No Video Found: (" + filePath + ") \n Switching to Default Video.");
+                            //alert("No Video Found: \n Switching to Default Video.");
+                            //$('.focus-area').empty();
+                            
+                            if($('#msg-box').hasClass('hidden')) $('#msg-box').removeClass('hidden');
+                            if(!$('#video-box').hasClass('hidden')) $('#video-box').addClass('hidden');
+                        }
+                 );
+                
+            }, 
+            function(error) {
+                alert("File System Error: " + JSON.stringify(error));
+            }
+          );
+              
+     
+ }//end trainingPageDeviceReady()
  
- 
- function expand(){
-     console.log('expanding' );
-     //$('#coll_mod_1').collapsible( "option", "collapsed", false )
-     $('#coll_mod_1').collapsible( "option", "expand", true )
-     //$('#coll_mod_1').attr('data-collapsed','false');
- }
- 
- 
- function toggleTopics(){
-     alert('toggleTopics');
- }
- 
+
 function loadModule(cat_id){
     
+    console.log('cat_id: ' + cat_id);
+    
     globalObj.categoryID = cat_id;
+    
     globalObj.db.transaction(populateModule,function(error){alert("error populating modules " + JSON.stringify(error))});
     
+    if($("body").data('trainingHomeData')!=null){
+        $('.focus-area').html('');
+    }
+    
     $('#collapsible_content').html('');
+    
+    $('#' + globalObj.currentPage + ' #context-bar').html('Modules');
 }
+
+function createTabMarkup(video_file){
+    
+    //video_file = 'refer.mp4';
+    
+    var html = '<div id="tab-container" class="tab-container">';
+    
+        html +=     '<ul class="etabs">' +
+                        '<li class="tab"><a href="#tab-video">Introduction</a></li>' +
+                        '<li class="tab"><a href="#tab-topics">Topics</a></li>' +
+                    '</ul>';
+ 
+        html +=     '<div class="panel-container">';
+                
+        html +=         '<div id="tab-video">' +
+                            '<div id="video-box" class="training-video margintop20 ui-block width100" >' +
+                                '<video width="320" height="240" controls="controls" id="cvideoscreen">' +
+                                    '<source src="" type="video/mp4" />' +
+                                '</video>' +
+                            '</div>' +
+                        '</div>';
+        
+        html +=         '<div id="tab-topics">' +
+                            '<div id="collapsible_content" data-role="collapsible-set" class=""></div>' +
+                        '</div>';
+                      
+        html +=     '</div>';
+        
+        html += '</div>';
+	
+        $('.focus-area').html(html);
+        
+       
+        
+        //set video file and call video attach method
+        globalObj.videoFile = video_file;
+        attachCategoryVideoFile();
+              
+        $('#tab-container').easytabs();
+        //setTimeout(function(){
+            //$('#tab-container').easytabs();
+        //},2000);
+        
+         //if in revisit mode, set the topics tab active
+         console.log('active tab side: ' + $("body").data('trainingHomeData'));
+//        if($("body").data('trainingHomeData')!=null){
+//            $('.tab:first-child').removeClass('active');
+//            $('.tab:last-child, .tab:last-child a').addClass('active');
+//        }
+}
+
+function moduleClicked(h1){
+//    console.log(h1.className);
+//    $('h1.ui-collapsible-heading').addClass('ui-collapsible-heading-collapsed');
+    //h1.className += 'ui-collapsible-heading-collapsed';
+}
+
+
 
 function populateModule(tx){
 
@@ -168,8 +283,12 @@ function populateModule(tx){
     tx.executeSql(query,[],
                     function(tx,result){
                         var len = result.rows.length;
-                        //console.log('mods len: ' + len);
+                        console.log('mods len: ' + len);
                         if(len>0){
+                            //treat tab and videos here
+                            //categoryRow = result.rows.item(0);
+                            createTabMarkup(result.rows.item(0)['video_file']);
+                            
                             for(var i=0; i<len; i++){
 
                                 //closure
@@ -193,6 +312,7 @@ function populateModule(tx){
 //                                                $('#coll_mod_'+ globalObj.moduleID).trigger("expand");
 //                                            },500);
 //                                        }
+                    
                                     },i*200);
                                     
                                     
@@ -230,7 +350,7 @@ function populateTopic(tx){
                         //console.log(globalObj.moduleID + ' len: ' + len);
                         //var empty = len>0 ? '' : 'empty';
                         html += '<div id="coll_mod_'+ globalObj.moduleID + '" data-role="collapsible" data-icon="arrow-d" data-iconpos="right" data-collapsed="true" class="c-inner-content">';
-                        html += '<h1 class="moduletitle" >' + globalObj.moduleTitle + '</h1>';
+                        html += '<h1 class="moduletitle" onclick="moduleClicked(this)">' + globalObj.moduleTitle + '</h1>';
                             
                         if(len==0)
                             html += '<p><a href="#"> No training topics found for this module. </a></p>';
@@ -263,7 +383,50 @@ function topicStarter(topic_id,module_id){
     //console.log('body data: ' + JSON.stringify($("body").data()));
     
     if(globalObj.loggedInUserID > 0){  //user is logged in, group is 0
-        $.mobile.changePage( "training.html" );
+        //first check if user has done pre-test, 
+        //if yes, go to training page
+        //if no, prompt for pre-test
+         //check if user has taken test for this module before
+         globalObj.db.transaction(function(tx){
+                query = 'SELECT * FROM cthx_test t JOIN cthx_test_session ts ' +
+                        'ON t.test_id=ts.test_id AND t.module_id='+ globalObj.moduleID +
+                        ' AND worker_id='+ globalObj.loggedInUserID;
+                        
+                tx.executeSql(query,[],function(tx,result){
+                    if(result.rows.length>0){
+                      // if yes, allow user to take training
+                        $.mobile.changePage( "training.html" );
+                    }
+                  else{
+                      console.log('going into popup for pretest');
+                      console.log('test id: ' + globalObj.testID + ' module id: ' + globalObj.moduleID);
+                      //if no, direct user to take pretest via pop up
+
+                      $("#traininghomepage .twobuttons .popup_header").html(globalObj.appName);
+
+                      text = 'You are yet to complete pre-test for this module.<br/><br/>' +
+                             'What would you like to do?';
+                      $("#traininghomepage .twobuttons .statusmsg").html(text);
+                      
+                      if(globalObj.currentPage=='traininghomepage') 
+                        $("#traininghomepage .twobuttons #cancelbutton").attr('onclick','$("#traininghomepage .twobuttons").popup("close")');
+                      else
+                        $("#traininghomepage .twobuttons #cancelbutton").attr('href','training_home.html');
+                    
+                      $("#traininghomepage .twobuttons #cancelbutton .ui-btn-text").html('Choose another module');
+
+                      $("#traininghomepage .twobuttons #okbutton").attr('onclick',"goToPreTest()");
+                      $("#traininghomepage .twobuttons #okbutton .ui-btn-text").html('Complete pre-test');
+
+                      $("#traininghomepage .twobuttons").css({width:'500px'});
+                      $("#traininghomepage .twobuttons").popup('open');
+                    }
+                });
+             },
+             function(err){},
+             function(){}
+         )
+        
     }
     else{  //not logged in
         console.log('topicStarter usersCount: ' + globalObj.usersCount);
@@ -272,10 +435,10 @@ function topicStarter(topic_id,module_id){
         if(globalObj.usersCount > 1){  //more than one user
             $('#sessionPopup').popup('open');
         }
-        else {//only one user
-            globalObj.sessionType = 1;
+        else {//only one user in the system yet. Log the user in straight off and let them take the necessary training.
             globalObj.loginMode = 'training';
-            $.mobile.changePage( "login.html?pagemode=1" );
+            globalObj.loginByPassMode = true;
+            login();
         }    
     }//end else not logged in
 }

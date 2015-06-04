@@ -34,8 +34,10 @@ $(document ).delegate("#helppage", "pageinit", function() {
             
 function getHelpFiles(){
        var html = '';
-       var query = 'SELECT * FROM cthx_user_guide ORDER BY guide_title';
-       $('#helppage #c-bar').html('User Guides');
+       var query = 'SELECT * FROM cthx_user_guide';
+       
+       $('#c-title').html('User Guides');
+       $('#helppage #c-bar').html('Guide Files');
        
        console.log('user guides aids: ' + query);
        
@@ -51,7 +53,10 @@ function getHelpFiles(){
                                         var row = resultSet.rows.item(i);
                                         html += '<li class="bottomborder " data-icon="false" >';
                                         html +=        '<a class="margintop10 notextdecoration textblack" href="#" onclick="launchPDF(\'' + globalObj.helpDir + '\',\''+ row['guide_file'] + '\')">';
-                                        html +=             '<p class="">' + row['guide_title'] + '</p>';
+                                        html +=             '<p class="">' + 
+                                                                '<div class="bold">' + row['guide_title'] + '</div>' +
+                                                                '<small style="white-space:normal;">' + row['summary'] + '</small>' +
+                                                            '</p>';
                                         html +=        '</a>';
                                         html += '</li>';
                                     }
@@ -101,37 +106,16 @@ function getInfo(){
    
    
    function getAbout(){
-       $('#c-bar').html('mTrain - Mobile Training Solutioin');
-       
-       var html = '<ul class="content-listing textfontarial12" data-role="listview">';
-                  
-           html +=  '<li  data-icon="false" class="bottomborder margintop20">' +
-                            '<p class="bold">Powered By:</p>' +
-                            '<p class="text999 textfontarial13">Federal Ministry of Health</p>' +
-                     '</li>'; 
-                     
-           html +=  '<li  data-icon="false" class="bottomborder margintop20">' +
-                            '<p class="bold">Software</p>' +
-                            '<p class="text999 textfontarial13">' +
-                                 'Version a.b Release x.y <br/> Release Date: Jul 25, 2014'  
-                            '</p>' +
-                     '</li>'; 
-                 
-                 
-//           html +=  '<li  data-icon="false" class="bottomborder margintop20">' +
-//                            '<p class="bold">Powered By</p>' +
-//                            '<p class="text999 textfontarial13">Techie Planet</p>' +
-//                     '</li>'; 
-         
-           html += '</ul>';
+       $('#c-title').html('About');
+       $('#c-bar').html('mTrain - Mobile Training Solution');
            
-           html += '<p class="bold margintop40 textfontarial12">Terms of Use</p>';
-           html +=  '<div class="noborder margintop10 textfontarial12 full-length-box">' + 
-                       'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut' + 
-                       'labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco' + 
-                       'laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in' +
-                       'voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat' +
-                       'cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+           var html = '<p class="bold margintop20 textfontarial13 bold"><u>Acknowledgement</u></p>';
+           html +=  '<div class="noborder margintop10 textfontarial12 ">' + 
+                       'The mTrain system was developed under the leadership and guidance of the Nigerian Federal Ministry of Health, department of Family Health and with inputs and guidance from various officials and health care workers at State, LGA and Health Facility levels. ' +
+                       '<br/><br/>' +
+                       'Audio-visual content has been provided by the Global Health Media Project and Medical Aid Films. Training Guides, Standing Order, and National Guidelines have been provided by the Federal Ministry of Health. Job Aids are provided by various organizations to the Ministry of Health. ' +
+                       '<br/><br/>' +
+                       'The Norwegian International Development Agency provided the funding to support the development of this system.' +
                    '</div';
                    
            $('.focus-area').html(html);

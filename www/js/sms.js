@@ -1,26 +1,29 @@
 /*
  * status 0 - not sent, 1 - sent not delivered (resend), 2 - delivered
  * priority 1 - high, 2 - average
- * source 1 - user data, 2 - training, 3 - test
+ * source 1 - user data, 2 - training, 3 - test, 4 - job aid/standing order
  */
 
 function queueTrainingSMS(tx,id){
-    //Training activity - status,stype,mtype,moduleid,workerid,trainingid,facid. 
-    //Long Sample: 2,1,1,123,123,123,123
+    //Training activity - start date, end date,status,stype,mtype,moduleid,trainingid,workerid,facid. 
+    //Long Sample(max - 43): 1970-01-01,1970-01-01,2,1,1,123,123,123,123
+    // 1970-01-01,1970-01-01,2,1,1,1,1,1,2
     
     var fields = 'message,status,priority,source';
     var query = 'SELECT * FROM cthx_training_session trs JOIN cthx_settings s WHERE trs.session_id = ' + id + 
                 ' AND s.id=1';
+            
     tx.executeSql(query,[],function(tx,result){
         if(result.rows.length>0){
             var row = result.rows.item(0);
             console.log('message row: ' + JSON.stringify(row))
             var sObj = JSON.parse(row['jsontext']);
-            var message = row['status'] + ',' + row['session_type'] + ',' + row['material_type'] + ',' +
+            var message = row['start_time'] + ',' + row['end_time'] + ',' +
+                          row['status'] + ',' + row['session_type'] + ',' + row['material_type'] + ',' +
                           row['module_id'] + ',' + row['training_id'] + ',' + 
                           row['worker_id'] + ',' + sObj['facilityID'];
             
-            //use prepared statement here to be able to input the message which already contains ocmmas
+            //use prepared statement here to be able to input the message which already contains commas
             var insertQuery = 'INSERT INTO cthx_sms_queue (' + fields + ') VALUES (?,?,?,?)';
             console.log('message: ' + message);
             tx.executeSql(insertQuery, [message,"0","2","2"]);
@@ -34,8 +37,8 @@ function queueTrainingSMS(tx,id){
 
 
 function queueTestSMS(tx,id){    
-    //Test result - score, total,testid, workerid, facid
-    //Long Sample: 10,10,123,123,123
+    //Test result - date_taken,score, total,improvement, testid, workerid, facid
+    //Long Sample(max-33): 1970-01-01,10,10,-123,123,123,123
     
     var fields = 'message,status,priority,source';
     var query = 'SELECT * FROM cthx_test_session tes JOIN cthx_settings s WHERE tes.session_id = ' + id + 
@@ -45,11 +48,12 @@ function queueTestSMS(tx,id){
             var row = result.rows.item(0);
             console.log('message row: ' + JSON.stringify(row))
             var sObj = JSON.parse(row['jsontext']);
-            var message = row['score'] + ',' + row['total'] + ',' + row['test_id'] + ',' +
+            var message = row['date_taken'] + ',' + row['score'] + ',' + row['total'] + ',' + 
+                          row['improvement'] + ',' + row['test_id'] + ',' +
                           row['worker_id'] + ',' + sObj['facilityID'];
             
             //use prepared statement here to be able to input the message which already contains ocmmas
-            var insertQuery = 'INSERT INTO cthx_sms_queue (' + fields + ') VALUES (?,?,?)';
+            var insertQuery = 'INSERT INTO cthx_sms_queue (' + fields + ') VALUES (?,?,?,?)';
             console.log('message: ' + message);
             tx.executeSql(insertQuery, [message,"0","2","3"]);
             
@@ -60,8 +64,37 @@ function queueTestSMS(tx,id){
 }
 
 
+function queuePreTestSMS(tx,workerid,testid){    
+    //Test result - workerid, testid, questions, score, total, facid
+    //Long Sample: //Long Sample: 123,10,70chars,10,10,123
+    
+    var fields = 'message,status,priority,source';
+    var query = 'SELECT * FROM cthx_pretest pt JOIN cthx_settings s WHERE pt.worker_id = ' + workerid + 
+                ' AND pt.test_id=' + testid + ' AND s.id=1';
+    tx.executeSql(query,[],function(tx,result){
+        if(result.rows.length>0){
+            var row = result.rows.item(0);
+            console.log('message row: ' + JSON.stringify(row))
+            var sObj = JSON.parse(row['jsontext']);
+            var message = row['worker_id'] + ',' + row['test_id'] + ',' + row['questions'] + ',' +
+                          row['score'] + ',' + row['total'] + ',' + sObj['facilityID'];
+            
+            //use prepared statement here to be able to input the message which already contains ocmmas
+            var insertQuery = 'INSERT INTO cthx_sms_queue (' + fields + ') VALUES (?,?,?,?)';
+            console.log('message: ' + message);
+            tx.executeSql(insertQuery, [message,"0","1","4"]);
+            
+            //try to send out messages in case this is the 6th message
+            setTimeout(pushSMSQueue(),1000); 
+        }
+    });
+}
+
+
+
+
 function queueRegSMS(tx,id){
-    //User data - worker_id, title, username,password, firstname, middlename, lastname, gender, email, phone, supervisor, cadre_id, facility_id
+    //User data - firstname, middlename, lastname, gender, email, phone, supervisor, cadre_id, worker_id, facility_id
     //Sample: 123,1234567890,1234567890,123456789012,123456789012,123456789012,1,+50,12345678901,1,1,123
     var fields = 'message,status,priority,source';
     var query = 'SELECT * FROM cthx_health_worker w JOIN cthx_settings s WHERE w.worker_id = ' + id + 
@@ -89,10 +122,39 @@ function queueRegSMS(tx,id){
     });
 }
 
+function queueAidSMS(tx,id){
+    //Training activity - date viewed, aid id,aid type,facilityid, source id
+    //Long Sample(max - 23): 1970-01-01,123,2,123,12
+    
+    var fields = 'message,status,priority,source';
+    var query = 'SELECT * FROM cthx_aid_session trs JOIN cthx_settings s WHERE trs.session_id = ' + id + 
+                ' AND s.id=1';
+    tx.executeSql(query,[],function(tx,result){
+        if(result.rows.length>0){
+            var row = result.rows.item(0);
+            console.log('message row: ' + JSON.stringify(row))
+            var sObj = JSON.parse(row['jsontext']);
+            var message = row['date_viewed'] + ',' + row['aid_id'] + ',' + 
+                          row['aid_type'] + ',' + sObj['facilityID'];
+            
+            //use prepared statement here to be able to input the message which already contains ocmmas
+            var insertQuery = 'INSERT INTO cthx_sms_queue (' + fields + ') VALUES (?,?,?,?)';
+            console.log('message: ' + message);
+            tx.executeSql(insertQuery, [message,"0","2","4"]);
+            
+            //try to send out messages in case this is the 6th message
+            setTimeout(pushSMSQueue(),1000); 
+        }
+    });
+}
+
+
 
 /*
  * This method pushes the message for sending via HTTP. 
  * If HTTP fails, then try sending via SMPP.
+ * This method sends out ALL pending messages in batches of the limit value. 
+ * It sends out as many batches as necessary to clear all pending messages
  */
  /*
   * status 0 - not sent, 1 - sent not delivered (resend), 2 - delivered
@@ -106,7 +168,7 @@ function queueRegSMS(tx,id){
 function pushSMSQueue(){
     //status 0 - not sent, 1 - sent not delivered (resend), 2 - delivered
     
-        var len =1, limit = 6;
+        var len =1, limit = 3;
         var query = 'SELECT * FROM cthx_sms_queue WHERE status < 2';
         var syncBigMessage = '', syncMessageIdList = '', date_sent='';
         
@@ -125,21 +187,21 @@ function pushSMSQueue(){
                             setTimeout(function(){
                                 if(row['priority']==1){  //high priority
                                     //console.log('modulo is 0001');
-                                    syncBigMessage = row['message'] + ',' + row['sms_id'];
+                                    syncBigMessage = row['message'] + ',' + row['sms_id'] + ',' + row['source'];;
                                     date_sent = getNowDate();
                                     console.log('message 0001: ' + syncBigMessage + ' date: ' + date_sent);
                                     
                                     //batch update of fields to status 2 - sent
                                     globalObj.db.transaction(function(tx){
-                                        query = 'UPDATE cthx_sms_queue SET status=1,date_sent=\'' + date_sent + '\' WHERE sms_id =' + row['sms_id'];
+                                        query = 'UPDATE cthx_sms_queue SET status=2,date_sent=\'' + date_sent + '\' WHERE sms_id =' + row['sms_id'];
                                         tx.executeSql(query);
                                         
-                                        sendHTTPMessage(syncBigMessage)
+                                        sendHTTPMessage(syncBigMessage, row['sms_id']);
                                     });
                                 }
                                 else if(row['priority']==2){    //average priority
                                     //concatenate the message
-                                    bigMessage += row['message'] + ',' + row['sms_id'];
+                                    bigMessage += row['message'] + ',' + row['sms_id'] + ',' + row['source'];
                                     messageIdList += row['sms_id'];
                                     averagePrioritycount++; //increment count to use in modulo calculation 
                                     
@@ -161,11 +223,11 @@ function pushSMSQueue(){
 
                                         //batch update of fields to status 1 - sent
                                         globalObj.db.transaction(function(tx){
-                                            query = 'UPDATE cthx_sms_queue SET status=1,date_sent=\'' + date_sent + '\' WHERE sms_id IN (' + syncMessageIdList + ')';
+                                            query = 'UPDATE cthx_sms_queue SET status=2,date_sent=\'' + date_sent + '\' WHERE sms_id IN (' + syncMessageIdList + ')';
                                             console.log('date_sent query: ' + query);
                                             tx.executeSql(query);
                                             
-                                            sendHTTPMessage(syncBigMessage)
+                                            sendHTTPMessage(syncBigMessage, syncMessageIdList)
                                         });
                                     }
                                 }
@@ -182,9 +244,13 @@ function pushSMSQueue(){
  * Used to send SMPP message when NO wifi OR mobile carrier data service available
  * Ensure that 
  */
-function sendSMPPMessage(message){
+function sendSMPPMessage(message, mySMSIDList){
+    //make message in V2N format
+    message = 'CHAI ' + message;
+    
     //alert('sending: '+ message);
     console.log('sending SMPP SMS: '+ message + ' message length: ' + message.length);
+    
     //return;
     var query = 'SELECT * FROM cthx_settings WHERE id=1';
     globalObj.db.transaction(function(tx){
@@ -196,9 +262,14 @@ function sendSMPPMessage(message){
             //var message = 'Testing from mobile'; //$("#messageTxt").val();
             //var intent = "INTENT"; //leave empty for sending sms using //default intent
             var intent = ""; //leave empty for sending sms using //default intent
+            
             var success = function () { 
                 //alert('Usage SMS sent successfully'); 
+                globalObj.db.transaction(function(tx){
+                    tx.executeSql('UPDATE cthx_sms_queue SET status=2 where sms_id IN (' + mySMSIDList + ')');
+                });
             };
+            
             var error = function (e) { 
                 //alert('Usage SMS Sending Failed: ' + e); 
             };
@@ -210,16 +281,24 @@ function sendSMPPMessage(message){
 /*
  * Used to send message when wifi OR mobile carrier data service available
  */
-function sendHTTPMessage(message){
+function sendHTTPMessage(message, mySMSIDList){
     //status 0 - not sent, 1 - sent not delivered (resend), 2 - delivered
     
+    console.log('Sending HTTP MESSAGE: '+ message + ' message length: ' + message.length);
+    
+    //var url = 'http://techieplanetltd.com/chai/mtrain/MessagingAPI/consumeFromMobile/?passkey=mtrainofficial';
+    //var url = 'http://localhost/yii/mtrain/MessagingAPI/consumeFromMobile/?passkey=mtrainofficial';
+    var url = 'http://mhtraining.com.ng/MessagingAPI/consumeFromMobile/?passkey=mtrainofficial';
+    
     $.ajax({
-        url: 'http://techieplanetltd.com/chai/messagehelper.php',
+        url: url,
         type: "POST",
         data: {message:message},
         success: function(response){
-                    console.log('sending HTTP SMS: '+ message + ' message length: ' + message.length);
-                    //console.log('HTTP response: ' + response);
+                    //**************************
+                    //console.log('HTTP response: ' + response); 
+                    //return;
+                    //**************************
                     responseObj = JSON.parse(response);
       
                     var smsIDList = '';
@@ -246,7 +325,7 @@ function sendHTTPMessage(message){
             var jqXHRObj = jqXHR;
             if(jqXHRObj['readyState']==0 && jqXHRObj['responseText']=="" && textStatus=="error"){
                 //no internet connection, use SMS
-                sendSMPPMessage(message);
+                sendSMPPMessage(message, mySMSIDList);
             }
         }
     

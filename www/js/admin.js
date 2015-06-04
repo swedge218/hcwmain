@@ -11,7 +11,7 @@ $(document ).delegate("#adminpage", "pagebeforecreate", function() {
 });
 
 
-$(document ).delegate("#adminpage", "pageshow", function() {        
+$(document ).delegate("#adminpage", "pageshow", function() {  
     setHeaderNotificationCount('adminpage');
     //$('#total_noti').html(globalObj.totalNotificationCount);
     
@@ -171,24 +171,23 @@ function queryTestStats(tx){
                 '(SELECT COUNT(*) FROM cthx_test) AS num_test, ' +
         
                  //number of tests done
-                '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session) AS num_test_done, ' + 
+                '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session WHERE mode=2) AS num_test_done, ' + 
                     
                  //number of high performing tests 
-                '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session WHERE (score/total*100)>80) AS num_high, ' +  
+                '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session WHERE mode=2 AND (score/total*100)>80) AS num_high, ' +  
                 
                 //number of average tests 
                 '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session WHERE (score/total*100)>60 AND (score/total*100)<=80) AS num_average, ' +  
                    
                 //number of underperforming tests 
-                '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session WHERE (score/total*100)>39 AND (score/total*100)<=60) AS num_underperforming, ' +    
+                '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session WHERE mode=2  AND (score/total*100)>39 AND (score/total*100)<=60) AS num_underperforming, ' +    
                  
                 //number of tests failed
-                '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session WHERE (score/total*100)<40) AS num_failed, ' + 
+                '(SELECT COUNT(DISTINCT test_id) FROM cthx_test_session WHERE mode=2 AND (score/total*100)<40) AS num_failed, ' + 
                     
                 //general average test performance
-                '(SELECT SUM(score)/SUM(total)*100 AS avg FROM cthx_test_session) AS general_avg ';
+                '(SELECT ROUND(SUM(score)/SUM(total)*100,2) AS avg FROM cthx_test_session WHERE mode=2) AS general_avg ';
                 
-                //, , , chart
 
         
         tx.executeSql(query,[],
@@ -197,16 +196,20 @@ function queryTestStats(tx){
                             //console.log('View Length: ' + len);
                             var html = '';
                             if(len>0){
+                                                               
                                 var row = result.rows.item(0);
+                                var general_avg = row['general_avg'] == null ? 0 : row['general_avg'];
+                                
                                 html = '<ul class="content-listing textfontarial12" data-role="listview"  >' +
                                         '<li  data-icon="false"><p>Total number of tests<span id="trainingtaken" class=ui-li-count>' + row['num_test'] + '</span></p></li>' +
                                         '<li  data-icon="false"><p>Total number of tests that have been taken<span id="trainingtaken" class=ui-li-count>' + row['num_test_done'] + '</span></p></li>' +
-                                        '<li  data-icon="false"><p>Total number of High Perfromance (>80%) Results<span id="trainingtaken" class=ui-li-count>' + row['num_high'] + '</span></p></li>' +
+                                        '<li  data-icon="false"><p>Total number of High Performance (>80%) Results<span id="trainingtaken" class=ui-li-count>' + row['num_high'] + '</span></p></li>' +
                                         '<li  data-icon="false"><p>Total number of Average (>60% AND <=80%) Results<span id="trainingtaken" class=ui-li-count>' + row['num_average'] + '</span></p></li>' +
                                         '<li  data-icon="false"><p>Total number of Underperforming (>40% AND <=60%) Results<span id="trainingtaken" class=ui-li-count>' + row['num_underperforming'] + '</span></p></li>' +
                                         '<li  data-icon="false"><p>Total number of Average (<40%) Results<span id="trainingtaken" class=ui-li-count>' + row['num_failed'] + '</span></p></li>' +
-                                        '<li  data-icon="false"><p>Average Test Performance Percentage<span id="trainingtaken" class=ui-li-count>' + row['general_avg'] + '</span></p></li>' +
+                                        '<li  data-icon="false"><p>Average Test Performance Percentage<span id="trainingtaken" class=ui-li-count>' + general_avg + '</span></p></li>' +
                                         '</ul>';
+                                        //row['general_avg']
                                         
                                  $('.focus-area').html(html);
                                  $('.c-title').html('Usage Stats');
@@ -275,7 +278,7 @@ function showChangeAdmin(){
                                                             adminObj.adminID = row['worker_id'];
                                                             continue;
                                                         }
-                                                        var fullName = capitalizeFirstLetter(row['firstname'] + ' ' + capitalizeFirstLetter(row['middlename']) + ' ' + capitalizeFirstLetter(row['lastname']));
+                                                        var fullName = capitalizeFirstLetter(row['firstname']) + ' ' + capitalizeFirstLetter(row['middlename']) + ' ' + capitalizeFirstLetter(row['lastname']);
                                                         html +=  '<option value="' + row['worker_id'] + '">' + fullName + '</option>';
                                                     }
                              html +=            '</select>' +
@@ -285,11 +288,15 @@ function showChangeAdmin(){
                                     '</div>';
                                 
                             $('.focus-area').html(html);
-                            $('.c-title').html('Change Admin User');
+                            $('.c-title').html('Admin Change');
                             $('#context-bar').html(
-                                             '<span id="column-width width30">Admin Change</span>' +
+                                             '<span id="column-width width30">Change Admin User</span>' +
                                              '<span class="floatright textfontarial13"><a href="" onclick="changeAdminUser()" class="notextdecoration actionbutton textwhite">Save</a></span>'
                                         );     
+                                            
+                            //Initialize the select animate dowpdown plugin
+                            //This registers all select boxes for the plugin
+                            $('select').dropdown();
                         }
                         else{
                             //$('#adminpage #statusPopup .statusmsg').html('<p>No user to change to.</p>');
@@ -320,23 +327,12 @@ function querySettings(tx){
                             if(row['jsontext'] != '')
                                 settingsObj = JSON.parse(row['jsontext']);
                       
-                                
-                            //sms shortcode
+                            //facility ID
                             html += '<div class="textfontarial12 width95 bottomborder padcontainer  marginbottom10">' +
-                                        '<p class="marginbottom10"><strong>SMS Short Code*</strong></p>' +
+                                        '<p class="marginbottom10"><strong>Facility ID</strong></p>' +
                                         '<p>' +
                                             '<span class="marginleft10">' +
-                                                '<input class="styleinputtext textright" data-role="none" size="20" type="tel" name="shortcode" id="shortcode" value="' + (settingsObj.shortcode==0?"":settingsObj.shortcode) + '" />' +
-                                            '</span>' +
-                                        '</p>' +
-                                    '</div>';
-                             
-                            //sms count
-                            html += '<div class="textfontarial12 width95 bottomborder padcontainer  marginbottom10">' +
-                                        '<p class="marginbottom10"><strong>Maximum SMS Sent Per Week*</strong></p>' +
-                                        '<p>' +
-                                            '<span class="marginleft10">' +
-                                                '<input class="styleinputtext textright" data-role="none" size="20" type="text" name="smscount" id="smscount" value="' + settingsObj.smscount + '" />' +
+                                                '<input class="styleinputtext textright" data-role="none" size="20" type="text" disabled name="facid" id="facid" value="' + settingsObj.facilityID + '"/>' +
                                             '</span>' +
                                         '</p>' +
                                     '</div>';
@@ -365,15 +361,38 @@ function querySettings(tx){
                                             ' (<em>Optional</em>)</span>' +
                                         '</p>' +
                                     '</div>';
+                                
+                                
+                            //sms shortcode
+                            html += '<div class="textfontarial12 width95 bottomborder padcontainer  marginbottom10">' +
+                                        '<p class="marginbottom10"><strong>SMS Short Code*</strong></p>' +
+                                        '<p>' +
+                                            '<span class="marginleft10">' +
+                                                '<input class="styleinputtext textright" data-role="none" size="20" type="tel" name="shortcode" id="shortcode" value="' + (settingsObj.shortcode==0?"":settingsObj.shortcode) + '" />' +
+                                            '</span>' +
+                                        '</p>' +
+                                    '</div>';
+                             
+                            //sms count
+                            /*
+                            html += '<div class="textfontarial12 width95 bottomborder padcontainer  marginbottom10">' +
+                                        '<p class="marginbottom10"><strong>Maximum SMS Sent Per Week*</strong></p>' +
+                                        '<p>' +
+                                            '<span class="marginleft10">' +
+                                                '<input class="styleinputtext textright" data-role="none" size="20" type="text" name="smscount" id="smscount" value="' + settingsObj.smscount + '" />' +
+                                            '</span>' +
+                                        '</p>' +
+                                    '</div>';
+                            */
                             
                             
                             
                             $('.focus-area').html(html);
                             $('input').attr('onclick','focusListener(this)');
                             
-                            $('.c-title').html('Admin Settings');
+                            $('.c-title').html('Settings');
                             $('#context-bar').html(
-                                             '<span id="column-width width30">Settings</span>' +
+                                             '<span id="column-width width30">Admin Settings</span>' +
                                              '<span class="floatright textfontarial13"><a href="" onclick="updateAdminSettings()" class="notextdecoration actionbutton textwhite" >Save</a></span>'
                                         );   
                             if($('.required-area').length==0)
@@ -443,14 +462,14 @@ function showUsersList(){
     $('#userslist').addClass('active');
     
     getUsersSingleSelectionList('adminpage');
-    $('.c-title').html('Users List');
+    $('.c-title').html('Users');
 }
 
 
 function getUsersSingleSelectionList(pageid){
        var html = '';
         globalObj.db.transaction(function(tx){
-                            tx.executeSql('SELECT * FROM cthx_health_worker WHERE supervisor <> 1 ORDER BY firstname',[],
+                            tx.executeSql('SELECT * FROM cthx_health_worker ORDER BY supervisor DESC, firstname ASC',[],
                                 function(tx,resultSet){
                                     //console.log('len: ' + resultSet.rows.length);
                                     if(resultSet.rows.length>0){
@@ -459,12 +478,26 @@ function getUsersSingleSelectionList(pageid){
                                         for(var i=0; i<resultSet.rows.length; i++){
                                             var member = resultSet.rows.item(i);
                                             //if(member['supervisor']==1) continue;  //no supervisor in list
-                                            html +=     '<li class="" data-icon="false">' +
-                                                                '<label class="" data-role="button" for="' + member['worker_id']+ '">' + 
-                                                                    capitalizeFirstLetter(member['firstname']) + ' ' + capitalizeFirstLetter(member['middlename']) + ' ' + capitalizeFirstLetter(member['lastname']) +
-                                                                    //'<input class="" type="radio" name="group-checkbox" id="'+ member['worker_id'] + '" data-iconpos="right" />' +
-                                                                    '<input type="radio" name="sandbox-choice" id="'+ member['worker_id'] + '" value="'+ member['worker_id'] + '" data-iconpos="right" />' +
-                                                                '</label>' +
+                                            
+                                            html +=     '<li class="" data-icon="false">';
+                                            
+                                            //admin cannot be selected
+                                            var radioType =        member['supervisor']==1 ? 'admin-radio' : '';
+                                            
+                                            html +=             '<label class="' + radioType + '" data-role="button" for="' + member['worker_id']+ '">';
+                                            
+                                            html +=                 member['supervisor']==1 ? 
+                                                                    '<strong>' : '';
+
+                                            html +=                     capitalizeFirstLetter(member['firstname']) + ' ' + capitalizeFirstLetter(member['middlename']) + ' ' + capitalizeFirstLetter(member['lastname']);
+                                            
+                                            html +=                 '<input class="" type="radio" name="sandbox-choice" id="'+ member['worker_id'] + '" value="'+ (member['supervisor']!=1 ? member['worker_id'] : 0) + '" data-iconpos="right" />';
+                                            html +=                 member['supervisor']==1 ?  '<em class="floatright user-view-admin-label">Admin User</em>' : '';
+                                                                    
+                                            html +=                 member['supervisor']==1 ? 
+                                                                    '</strong>' : '';
+                                                                
+                                            html +=             '</label>' +
                                                         '</li>';
                                         }
 
@@ -491,6 +524,26 @@ function getUsersSingleSelectionList(pageid){
             );
    }
 
+function startSandBox(){   
+    var userid = 0;
+    userid = $("input[name='sandbox-choice']:checked").val();
+    console.log('starting sandbox: ' + userid);
+    
+    if(userid == null || userid==0 ){
+        $('#adminpage #flashpopup .statusmsg').html('Select 1 non-admin User');
+        $('#adminpage #flashpopup').popup('open');
+        setTimeout(function(){$('#adminpage #flashpopup').popup('close');},2000);
+    }
+//    else if(userid == 0){
+//        $('#adminpage #flashpopup .statusmsg').html('Admin user view not allowed');
+//        $('#adminpage #flashpopup').popup('open');
+//        setTimeout(function(){$('#adminpage #flashpopup').popup('close');},2000);
+//    }
+    else if(userid > 0) {//
+        switchToSandboxMode(userid);
+    }
+}
+
 //function resetPassword(){
 //    var user = $('#user').val();
 //    if(user==0){
@@ -512,7 +565,7 @@ function changeAdminUser(){
      if(form.valid()){
             globalObj.db.transaction(function(tx){
                 //supervisor
-                var supervisor_id = $('#supervisor').val();
+                var supervisor_id = $('#supervisorwatch').val();
                 console.log('selected: ' + supervisor_id);
                 console.log('admin: ' + adminObj.adminID);
                 
@@ -543,7 +596,8 @@ function logoutAdminUser(){
     globalObj.sessionType = 0;
     globalObj.sessionUsersList = [];
     globalObj.loginMode = '';
-    globalObj.db.transaction(dropView);
+    globalObj.previousPage ='';
+    //globalObj.db.transaction(dropView);
     
     $.mobile.changePage( "index.html" );
 }
@@ -557,7 +611,7 @@ function logoutAdminUser(){
      if(form.valid()){
             globalObj.db.transaction(function(tx){
                     //settings object
-                    settingsObj.smscount = $('#smscount').val();
+                    //settingsObj.smscount = $('#smscount').val();
                     settingsObj.shortcode = $('#shortcode').val();
                     settingsObj.facilityName = $('#facname').val();
                     settingsObj.facilityAddrLine1 = $('#line1').val();
@@ -568,12 +622,13 @@ function logoutAdminUser(){
                     
                     fields = 'jsontext';
                     values = JSON.stringify(settingsObj);
+                    console.log('updateAdminSettings values: ' + $('#shortcode').val());
                     var updateQuery = 'UPDATE cthx_settings SET jsontext=\'' + values + '\' WHERE id=1';
                     tx.executeSql(updateQuery);
                     
-                    $('#adminpage #statusPopup .statusmsg').html('<p>Settings Updated</p>')
-                    $('#adminpage #statusPopup #okbutton').attr("onclick","$('#adminpage #statusPopup').popup('close')")
-                    $('#adminpage #statusPopup').popup('open');        
+                    $('#adminpage #flashpopup .statusmsg').html('Settings Updated');
+                    $('#adminpage #flashpopup').popup('open');
+                    setTimeout(function(){$('#adminpage #flashpopup').popup('close');},2000);
                 },
                 function(error){
                     console.log('Error updating settings');

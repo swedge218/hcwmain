@@ -80,6 +80,7 @@ function showFacilitySetup(){
                                         '</div>';
 
                                  //sms count
+                                 /*
                                 html += '<div class="textfontarial12 width95 bottomborder padcontainer  marginbottom10">' +
                                             '<p class="marginbottom10"><strong>Maximum SMS Sent Per Week*</strong></p>' +
                                             '<p>' +
@@ -88,6 +89,8 @@ function showFacilitySetup(){
                                                 '</span>' +
                                             '</p>' +
                                         '</div>';
+                                 */
+                                
                                
                        html +=      '</div>'; //focus area
                        html +=   '</div>'; //c-list
@@ -148,9 +151,9 @@ function showAdminInfoSetup(){
                             '<span class="">' +
                                 '<select onchange="changeMade(this);" name="cadre" id="cadre" data-role="none" class="styleinputtext">' + 
                                     '<option value="0">--Select Cadre--</option>' +
-                                    '<option value="1">CHEW</option>' +
-                                    '<option value="2">Nurse</option>' +
-                                    '<option value="3">Midwife</option>' +
+                                    '<option value="1">Nurse</option>' +
+                                    '<option value="2">Midwife</option>' +
+                                    '<option value="3">CHEW</option>' +
                                 '</select>' +
                                 '<input type="hidden" id="cadrewatch" name="cadrewatch" class="watcher">' +
                             '</span>' +
@@ -170,7 +173,7 @@ function showAdminInfoSetup(){
 
             //email
             html += '<div class="textfontarial12 width95 bottomborder padcontainer marginbottom10">' +
-                        '<p class="marginbottom10"><strong>Email*</strong></p>' +
+                        '<p class="marginbottom10"><strong>Email</strong></p>' +
                         '<p>' +
                             '<span class=""><input class="styleinputtext" data-role="none" size="20" type="email" name="email" id="email" value="' + workerObj.email + '" placeholder="Email Address" /></span>' +
                         '</p>' +
@@ -212,7 +215,7 @@ function showAdminInfoSetup(){
                                         '<option value="0">--Select Question--</option>' +
                                         '<option value="1">What is your favorite colour?</option>' +
                                         '<option value="2">What city were you born?</option>' +
-                                        '<option value="2">What is your favorite food?</option>' +
+                                        '<option value="3">What is your favorite food?</option>' +
                                     '</select>' +
                                     '<input type="hidden" id="questionwatch" name="questionwatch" class="watcher">' +
                                 '</span>' +
@@ -229,21 +232,30 @@ function showAdminInfoSetup(){
                                 
     html +=         '</div>' + //focus area
                 '</div>' + //c-list
-                //'</form>' +
-             '</div>' + //content-question
+             '</div>'; //content-question
 
 
     $('#wizardForm').html(html);   
     $('input').attr('onclick','focusListener(this)');
     
-    //set the selected cadre, question and gender
+    //set the selected cadre, question and gender, and their watcher hidden fields.
     document.getElementById("cadre").selectedIndex = workerObj.cadreID;
+    $('#'+'cadrewatch').val(workerObj.cadreID);
+    
     document.getElementById("squestion").selectedIndex = workerObj.secret_question;
+    $('#'+'questionwatch').val(workerObj.secret_question);
+    
     var genderID; 
     if(workerObj.gender=="Male") genderID =1;
     else if(workerObj.gender=="Female") genderID =2;
     else genderID =0;
     document.getElementById("gender").selectedIndex = genderID;
+    $('#'+'genderwatch').val(genderID);
+    
+        //Initialize the select animate dowpdown plugin
+        //This registers the select boxes for the plugin
+        $('select').dropdown();
+        
 }
 
 function showAdminLoginSetup(){
@@ -316,7 +328,7 @@ function setUpFacility(){
     
     if(form.valid()){
         //settings object
-        settingsObj.smscount = $('#smscount').val();
+        //settingsObj.smscount = $('#smscount').val();
         settingsObj.shortcode = $('#shortcode').val();
         settingsObj.facilityID = $('#facid').val();
         settingsObj.facilityName = $('#facname').val();
@@ -339,7 +351,7 @@ function setUpAdminWorker(){
         
     if(form.valid()){
       //if(true){
-        var gender = $('#gender').val()==1 ? 'Male' : 'Female';
+        var gender = $('#genderwatch').val()==1 ? 'Male' : 'Female';
         //var supervisor = supervisorExists==true ? 0 : 1;
 
         workerObj.firstname =  $('#firstname').val();
@@ -350,8 +362,8 @@ function setUpAdminWorker(){
         workerObj.phone = $('#phonenumber').val();
         //workerObj.qualification = $('#qualification').val();
         workerObj.supervisor = 1;
-        workerObj.cadreID = $('#cadre').val();     
-        workerObj.secret_question = $('#squestion').val();
+        workerObj.cadreID = $('#cadrewatch').val();     
+        workerObj.secret_question = $('#questionwatch').val();
         workerObj.secret_answer = $('#answer').val();
 
 
@@ -385,6 +397,7 @@ function saveAdminSettings(){
         //set localstorage value here to ensure it is set after the wizard process 
         //is complete.
         window.localStorage.setItem("firstuse", "1"); 
+        
     });
     
 }

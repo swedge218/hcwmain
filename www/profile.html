@@ -19,7 +19,7 @@
                  <ul id="sidebar_ul"  class="nomargin" data-role="listview" data-icon="false">
                   
                         <li id="link"  data-icon="false" class="">
-                             <a id="usagelink" href="" class="textfontarial15 active" onclick="showUsage();return false;">Usage</a>
+                             <a id="usagelink" href="" class="textfontarial15 active" onclick="showUsage();return false;">Usage Information</a>
                          </li>
                          
                          <li data-icon="false">
@@ -47,10 +47,10 @@
                                      <a href="#" onclick="getUncompletedTrainings(false)" class="textfontarial12 paddthree marginleft20">Pending Trainings<span id="uncompleted" class="ui-li-count setcountermargin2">0</span></a>
                                  </li>
                                  <li  data-icon="false" class="noborder">
-                                     <a href="#" onclick="getWaitingTests(false)" class="textfontarial12 paddthree marginleft20">Waiting Assessment<span id="waiting" class="ui-li-count setcountermargin2">0</span></a>
+                                     <a href="#" onclick="getWaitingTests(false)" class="textfontarial12 paddthree marginleft20">Pending Post-tests<span id="waiting" class="ui-li-count setcountermargin2">0</span></a>
                                  </li>
                                  <li  data-icon="false" class="noborder">
-                                     <a href="#" onclick="getFailedTests(false)" class="textfontarial12 paddthree marginleft20">Failed Assessment<span id="failed" class="ui-li-count setcountermargin2">0</span></a>
+                                     <a href="#" onclick="getFailedTests(false)" class="textfontarial12 paddthree marginleft20">Failed Assessments<span id="failed" class="ui-li-count setcountermargin2">0</span></a>
                                  </li>
                                  
                               </ul>
@@ -76,7 +76,7 @@
 
                         <div class="c-list">
 
-                            <ul data-role="listview" data-inset="true" data-dividertheme="f" class="nomargintop"> 
+                            <ul id="context-bar-holder" data-role="listview" data-inset="true" data-dividertheme="f" class="nomargintop"> 
                                <li id="context-bar" data-role="list-divider">Usage Information</li>   
                             </ul>  
 
@@ -96,6 +96,15 @@
                        </div> 
                   </div> 
 
+                        <!--this is the flashpopup -->
+                        <div class="noborder" data-role="popup" id="flashpopup" data-overlay-theme="f" data-dismissible="false">
+                           <div class="popup_body" style="min-width: 100px !important;">
+                               <p class="statusmsg textcenter"></p>
+                           </div>
+                       </div>
+                       <!--this is the flashpopup -->
+                       
+                       
                         <!--this is the status popup-->
                         <div class="noborder" data-role="popup" id="statusPopup" data-overlay-theme="f" data-dismissible="false">
                            <!--<a href="#" data-rel="back" data-role="button" data-theme="d" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>-->

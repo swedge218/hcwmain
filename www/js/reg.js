@@ -13,50 +13,80 @@ $(document ).delegate("#regpage", "pageshow", function() {
       });
       
     $('#regForm').validate({              
+           onfocusout: injectTrim($.validator.defaults.onfocusout),
+           
            rules:{ 
                firstname:{required:true, minlength:2}, 
                lastname:{required:true, minlength:2}, 
-               email:{required:true, email:true},
-               phonenumber:{required:true,digits:true, minlength:8},
+               email:{email:true},
+               phonenumber:{required:true,digits:true, minlength:8, unique_phone:true},
                cadrewatch:{required:true,min:1},
                genderwatch:{required:true,min:1},
                questionwatch:{required:true,min:1},
                answer: {required:true},
                
-               username:{required:true, minlength:6, unique_username:true}, 
-               password:{required:true, minlength:6}, 
+               username:{required:true, minlength:3, unique_username:true, hasNoSpaces: true}, 
+               password:{required:true, minlength:3}, 
                confirm:{required:true, equalTo: "#password"}
            },
            messages:{
                firstname:{required:'Cannot be empty', minlength:'2 characters minimum'}, 
                lastname:{required:'Cannot be empty', minlength:'2 characters minimum'}, 
-               email:{required:'Cannot be empty', email:'Enter valid email'},
-               phonenumber:{required:'Cannot be empty', digits:'Enter numbers only', minlength:'8 characters minimum'},
-               //phone:{required:'Cannot be empty', min:'8 characters minimum'},
+               email:{email:'Enter valid email'},
+               phonenumber:{required:'Cannot be empty', digits:'Enter numbers only', minlength:'8 characters minimum', unique_phone: 'Already registered'},
                cadrewatch:{required:'Make a selection', min:'Make a selection'},
                genderwatch:{required:'Make a selection', min:'Make a selection'},
                questionwatch:{required:'Make a selection', min:'Make a selection'},
                answer: {required:'Cannot be empty'},
                
-               username:{required:'Cannot be empty', minlength:'6 characters minimum',unique_username: 'Already taken'}, 
-               password:{required:'Cannot be empty', minlength:'6 characters minimum'}, 
+               username:{required:'Cannot be empty', minlength:'3 characters minimum',unique_username: 'Already taken', hasNoSpaces: 'Spaces not allowed'}, 
+               password:{required:'Cannot be empty', minlength:'3 characters minimum'}, 
                confirm:{required:'Cannot be empty', equalTo:'Password Mismatch'}
            }
         });//close validate
    
-        jQuery.validator.addMethod("unique_username", function(value, element) {
-            console.log('inside addmethod: ' + value + ' ' + element);
-            var usernames = $('div#content').data('usernames');
-            for(var i=0; i<usernames.length; i++){
-                if(usernames[i]==value) return false;
+        
+        jQuery.validator.addMethod("hasNoSpaces", function(value, element) {
+            console.log('has_spacesssssss: ');
+            if(value.split(" ").length > 1){
+                return false;
             }
             return true;
-          }, "Not available");  //the message here will only be used if none set for unique_username in messages block
+          }, "Spaces not allowed");  //the message here will only be used if none set for unique_username in messages block
+
+            jQuery.validator.addMethod("unique_username", function(value, element) {
+                console.log('unique username');
+                var workersdata = $('div#content').data('workersdata');
+                for(var i=0; i<workersdata.length; i++){
+                    if(workersdata[i].username==value.trim()) return false;
+                }
+                return true;
+             }, "Not available");  //the message here will only be used if none set for unique_username in messages block          
+          
+      
+            jQuery.validator.addMethod("unique_phone", function(value, element) {
+                console.log('unique_phone: ' + value);
+                var workersdata = $('div#content').data('workersdata');
+                for(var i=0; i<workersdata.length; i++){
+                    //console.log('user phone: ' + workersdata[i].phone);
+                    if(workersdata[i].phone == value.trim()) return false;
+                }
+                return true;
+              }, "Not available");  //the message here will only be used if none set for unique_username in messages block          
+        
+
+            function injectTrim(handler) {
+                console.log('inside injectTrim');
+                return function (element, event) {
+                  if (element.tagName === "TEXTAREA" || (element.tagName === "INPUT" && element.type !== "password")) {
+                    element.value = $.trim(element.value);
+                  }
+                  return handler.call(this, element, event);
+                };
+            }
+
           
 });
-
-
-
 
 
 $(document ).delegate("#regpage", "pageinit", function() { 
@@ -73,11 +103,13 @@ $(document ).delegate("#regpage", "pageinit", function() {
         
 })
 
+
 function handleSubmit(){
     $( "#regForm" ).validate();
     console.log('submit handler');
     return false;
 }
+
 
 /*
  * This sets up the user registration UI. It tries to know if the user is the first.
@@ -86,6 +118,7 @@ function handleSubmit(){
  */
 //var supervisorExists = false;
 function showPersonalReg(){
+    getUsersHiddenData();
     
     //var query = 'SELECT * FROM cthx_health_worker WHERE supervisor=1';
     //tx.executeSql(query,[],
@@ -112,9 +145,9 @@ function showPersonalReg(){
                                             '<span class="">' +
                                                 '<select onchange="changeMade(this);" name="cadre" id="cadre" data-role="none" class="styleinputtext">' + 
                                                     '<option value="0">--Select Cadre--</option>' +
-                                                    '<option value="1">CHEW</option>' +
-                                                    '<option value="2">Nurse</option>' +
-                                                    '<option value="3">Midwife</option>' +
+                                                    '<option value="1">Nurse</option>' +
+                                                    '<option value="2">Midwife</option>' +
+                                                    '<option value="3">CHEW</option>' +
                                                 '</select>' +
                                                 '<input type="hidden" id="cadrewatch" name="cadrewatch" class="watcher">' +
                                             '</span>' +
@@ -133,7 +166,7 @@ function showPersonalReg(){
                                 
                             //email
                             html += '<div class="textfontarial12 width95 bottomborder padcontainer marginbottom10">' +
-                                        '<p class="marginbottom10"><strong>Email*</strong></p>' +
+                                        '<p class="marginbottom10"><strong>Email</strong></p>' +
                                         '<p>' +
                                             '<span class=""><input class="styleinputtext" data-role="none" size="20" type="email" name="email" id="email" value="' + workerObj.email + '" placeholder="Email Address" /></span>' +
                                         '</p>' +
@@ -167,7 +200,7 @@ function showPersonalReg(){
                                                     '<option value="0">--Select Question--</option>' +
                                                     '<option value="1">What is your favorite colour?</option>' +
                                                     '<option value="2">What city were you born?</option>' +
-                                                    '<option value="2">What is your favorite food?</option>' +
+                                                    '<option value="3">What is your favorite food?</option>' +
                                                 '</select>' +
                                                 '<input type="hidden" id="questionwatch" name="questionwatch" class="watcher">' +
                                             '</span>' +
@@ -197,14 +230,17 @@ function showPersonalReg(){
                             document.getElementById("squestion").selectedIndex = workerObj.secret_question;
                             document.getElementById("questionwatch").value = workerObj.secret_question;
                             
-                            var genderID = workerObj.gender=='Male' ? 1 : 2;
+                            //var genderID = workerObj.gender=='Male' ? 1 : 2;
+                            if(workerObj.gender=="Male") genderID =1;
+                            else if(workerObj.gender=="Female") genderID =2;
+                            else genderID =0;
                             document.getElementById("gender").selectedIndex = genderID;
                             document.getElementById("genderwatch").value = genderID;
                             
                             $('.c-title').html(
                                     'New User'+
                                    '<span class="floatright textfontarial13 width30 textright" style="margin-top:4px">' +
-                                        '<a href="admin.html" class="pagebutton pagebuttonpadding textwhite" >Back to Admin Area</a>' +
+                                        '<a href="admin.html?pageMode=1" class="pagebutton pagebuttonpadding textwhite" >Back to Admin Page</a>' +
                                     '</span>'
                               );
                             $('#c-bar').html(
@@ -215,6 +251,10 @@ function showPersonalReg(){
                                         );  
                              if($('.required-area').length==0)
                                 $('#c-bar').after('<div class="required-area"><strong><em>* indicates required field</em></strong></div>');
+                            
+                            //Initialize the select animate dowpdown plugin
+                            //This registers the select boxes for the plugin
+                            $('select').dropdown();
                         
 }
 
@@ -224,7 +264,7 @@ function showPersonalReg(){
  */
 function showRegLogin(){
           //sets all usernames as data attribute for content div
-          getAllUsernames();
+          //getUsersHiddenData();
                 
           var html = '<ul class="content-listing textfontarial12" data-role="listview">';
 
@@ -257,11 +297,8 @@ function showRegLogin(){
                 html += '</ul>';
                 
                                 
-                           
-                            
                 $('.focus-area').html(html);
                 $('input').attr('onclick','focusListener(this)');
-                
                 
                 
                     $('#c-bar').html(
@@ -286,7 +323,7 @@ function setUpWorker(){
         
     if(form.valid()){
       //if(true){
-        var gender = $('#gender').val()==1 ? 'Male' : 'Female';
+        var gender = $('#genderwatch').val()==1 ? 'Male' : 'Female';
         //var supervisor = supervisorExists==true ? 0 : 1;
 
         workerObj.firstname =  $('#firstname').val();
@@ -297,8 +334,8 @@ function setUpWorker(){
         workerObj.phone = $('#phonenumber').val();
         //workerObj.qualification = $('#qualification').val();
         workerObj.supervisor = 0;
-        workerObj.cadreID = $('#cadre').val();     
-        workerObj.secret_question = $('#squestion').val();
+        workerObj.cadreID = $('#cadrewatch').val();     
+        workerObj.secret_question = $('#questionwatch').val();
         workerObj.secret_answer = $('#answer').val();
 
 

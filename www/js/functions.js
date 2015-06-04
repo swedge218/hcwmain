@@ -6,10 +6,17 @@ function hideSpinner(){
     $.mobile.loading("hide");
 }
 
+
+function round(value, decimals) {
+    return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
+
+
 function logUserIn(id){
       globalObj.loggedInUserID = id;
-      globalObj.sessionType=id;
+      globalObj.sessionType=1;
       globalObj.sessionUsersList = [globalObj.loggedInUserID];
+      globalObj.sessionUID = setSessionUID(id);
 }
 
 
@@ -17,11 +24,12 @@ function accessStandingOrder(orderFileName){
     if($('#quickMenu').parent().hasClass('ui-popup-active')) {
         $('#quickMenu').popup("close");
     }
-    launchPDF(globalObj.jobaidsDir, orderFileName, 'standing_order');
+    launchPDF(globalObj.jobaidsDir, orderFileName, 'guidelinespage');
 }
 
 
 function changeMade(combo){
+      //alert('changeMade');
       var index = combo.selectedIndex;
       var hiddenField = document.querySelector('#'+combo.id + ' ~ .watcher');
       hiddenField.value = index;
@@ -33,13 +41,17 @@ function changeMade(combo){
 }
 
 
-function focusListener(element){
+function selectionmade(combo){
+      selectedItemText = $('.dropdown-selected .dropdown-text').text();
+      console.log('selectedItemText: ' + selectedItemText);
+}
+
+
+function focusListener_orig(element){
         var inputID = element.id;
         
         //alert('win height: ' + $( window ).height());
-                
-        
-        
+                        
          //alert('doc height: ' + $( document ).height());
          //alert("focused: " + element.id + ' top: ' + $('#'+inputID).offset().top);
          setTimeout(function(){
@@ -59,26 +71,55 @@ function focusListener(element){
                     }
                     
                 }
-                
-//                if(inputTop > docHeight) {
-//                    topPos = inputTop - 80;
-//                    $(".content-area").animate({scrollTop: topPos }, 200);
-//                }
-//                else{
-//                    if((docHeight - inputTop) < 50){
-//                       topPos = $(".content-area").scrollTop() + 50;
-//                       $(".content-area").animate({scrollTop: topPos }, 100);
-//                   }
-//                   else{
-//                       topPos = inputTop - 80;
-//                       $(".content-area").animate({scrollTop: topPos }, 100);
-//                   }
-//                }
-
-                //alert('toppos: ' + topPos + ' inputtop: ' + inputTop + ' keypad: ' + docHeight);
          },1000);
                      
 }
+
+
+
+function focusListener(element){
+        var inputID = element.id;
+        //console.log('focus listening');
+        var fixbar = function (topPosition, inputTop, docHeight){
+             alert('inputtop: ' + inputTop + ' docheight: ' + docHeight + ' fixing bar to ' + topPosition);
+             $('#context-bar-holder').addClass('context-bar-holder');
+             $('#context-bar-holder').css({'top':topPosition});
+         }
+        
+        
+                        
+         //alert('doc height: ' + $( document ).height());
+         //alert("focused: " + element.id + ' top: ' + $('#'+inputID).offset().top);
+         setTimeout(function(){
+                var topPos = 0, fixPos = 0;
+                var docHeight = $( document ).height();
+                var inputTop = $('#'+inputID).offset().top;
+                var keyPadBreakPoint = 300;
+        
+                if(inputTop > docHeight) {
+                    //alert('inputTop > docHeight');
+                    topPos = (inputTop - 80);
+                    fixPos = topPos+40;
+                    $(".content-area, .content-form").animate({scrollTop: topPos }, 100);
+                }
+                else{
+                    if((docHeight - inputTop) < 80){
+                        //alert('docHeight - inputTop');
+                        topPos = $(".content-area, .content-form").scrollTop() + 80;
+                        fixPos = topPos - 80;
+                        $(".content-area, .content-form").animate({scrollTop: topPos }, 100);
+                    }
+                    else{
+                        //fixbar(0, inputTop, docHeight);
+                    }
+                    
+                }
+         },1000);
+         
+}
+
+
+
 
 /*
  *  this function is like a gateway for tests. it forcess the user to login IF they aren't.
@@ -94,17 +135,23 @@ function accessTests(){
         $.mobile.changePage('test.html?pagemode=1');  
     }
     else{
-        globalObj.loginMode = 'test';
-        $.mobile.changePage( "login.html?pagemode=1" );
+        //only one user registered yet. allow them to view their own profile
+//        if(globalObj.usersCount == 1){
+//            globalObj.loginMode = 'test';
+//            globalObj.loginByPassMode = true;
+//            login();
+//        }
+        //else
+        {
+            globalObj.loginMode = 'test';
+            $.mobile.changePage( "login.html?pagemode=1" );
+        }
     }
 }
 
 function accessProfile(){
-//    globalObj.loggedInUserID = 1;
-//    globalObj.sessionType=1;
-//    globalObj.sessionUsersList = [globalObj.loggedInUserID];
     
-    showSpinner();
+    //showSpinner();
     if($('#quickMenu').parent().hasClass('ui-popup-active')) {
         $('#quickMenu').popup("close");
     }
@@ -117,6 +164,12 @@ function accessProfile(){
             $.mobile.changePage('profile.html');
     }
     else{
+        //only one user registered yet. allow them to view their own profile
+//        if(globalObj.usersCount == 1){
+//            globalObj.loginMode = 'profile';
+//            globalObj.loginByPassMode = true;
+//            login();
+//        }
         if(globalObj.currentPage == 'loginpage'){   //clicking header profile link on login page
             globalObj.loginMode = 'profile';
             createLoginForm();
@@ -129,7 +182,33 @@ function accessProfile(){
             $.mobile.changePage( "login.html?pagemode=1" );
         }
     }
-    hideSpinner();
+    //hideSpinner();
+}
+
+
+function quickMenuLogin(){
+    var urlArray = $('#'+globalObj.currentPage).attr('data-url').split('/');
+    globalObj.previousPage = urlArray[urlArray.length-1]=='mainpage' ? 'index.html' : urlArray[urlArray.length-1];    
+    //alert(globalObj.previousPage);
+    //return;
+    
+    if($('#quickMenu').parent().hasClass('ui-popup-active')) {
+        $('#quickMenu').popup("close");
+    }
+       
+    if(globalObj.currentPage == 'loginpage'){   //clicking header profile link on login page
+        globalObj.loginMode = 'profile';
+        createLoginForm();
+        $('#loginpage #context-bar').html('Profile Login');
+        $('#loginpage #grouptab').parent().addClass('hidden');
+        $('#indtab').html('Individual Session');
+    }
+    else{
+        globalObj.loginMode = 'profile';
+        $.mobile.changePage( "login.html?pagemode=1" );
+    }
+   
+    
 }
 
 
@@ -162,6 +241,20 @@ function accessAdminArea(){
     }
 }
 
+
+function accessRegArea(){
+    if(globalObj.loggedInUserID == adminObj.adminID){
+        $.mobile.changePage('registration.html');  
+    }
+    else{
+        globalObj.currentProcess = 'registration';
+        globalObj.loginMode = 'admin';
+        $.mobile.changePage( "login.html?pagemode=1" );
+    }
+}
+
+
+
 function resetGlobals(){
     globalObj.categoryID = 0;
     globalObj.moduleID = 0;
@@ -186,6 +279,7 @@ function logout(){
     //$('#quickMenu').popup('close');
     //$('#logoutpopup').popup('open');
     
+    
     if($('#quickMenu').parent().hasClass('ui-popup-active')) {
         $('#quickMenu').popup("close");
     }
@@ -207,7 +301,8 @@ function doLogOut(){
     globalObj.sessionType = 0;
     globalObj.sessionUsersList = [];
     globalObj.loginMode = '';
-    //globalObj.db.transaction(dropView);
+    globalObj.sessionUID = '';
+    globalObj.previousPage = '';
 
     removeBodyDataValues();
     console.log('body data: ' + JSON.stringify($("body").data()));
@@ -304,6 +399,25 @@ function getNowDate(){
     return now;
 }
 
+function setSessionUID(userid){
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1;//January is 0!`
+    var yyyy = today.getFullYear();
+    var hour = today.getHours();
+    var minutes = today.getMinutes();
+    var seconds = today.getSeconds();
+    
+    if(dd<10){dd='0'+dd}
+    if(mm<10){mm='0'+mm}
+    if(hour<10){hour='0'+hour}
+    if(minutes<10){minutes='0'+minutes}
+    if(seconds<10){seconds='0'+seconds}
+    
+    globalObj.sessionUID = userid + '-' + yyyy + mm + dd + hour + minutes + seconds;
+    
+}
+
 /*
  * Select the admin user id to the global var
  */
@@ -364,6 +478,31 @@ function setUsersCount(){
         });
 }
 
+
+function getUsersHiddenData(){
+        var error = function(error){console.log('error getting all phones: ' + JSON.stringify(error));}
+        globalObj.db.transaction(function(tx){
+            var query = 'SELECT worker_id,username,firstname,lastname,phone FROM cthx_health_worker';
+            tx.executeSql(query,[],function(tx,result){
+                var len = result.rows.length;
+                workers = new Array();
+                for(var i=0; i<len; i++){
+                    var workerdata = {
+                            workerid : result.rows.item(i)['worker_id'],
+                            username :   result.rows.item(i)['username'],
+                            firstname : result.rows.item(i)['firstname'],
+                            lastname : result.rows.item(i)['lastname'],
+                            phone : result.rows.item(i)['phone']
+                    }
+                    workers.push(workerdata);
+                }
+                
+                //add the usernames array as data for the content div
+                $('div#content').data("workersdata",workers);
+            });
+        },error);
+  }
+
 function createTwoButtonPopup(pageid){
     //remove the popup from dom if it exists
     var parent = $('#'+pageid + ' #twobuttonspopup').parent();
@@ -395,9 +534,10 @@ function createTwoButtonPopup(pageid){
 }
 
 
-function launchPDF(dirname,filename,counter_key){
-    console.log('launching PDF: ' + filename);                             
-    console.log('dirname: ' + dirname,'filename: ' + filename,'counter_key: ' + counter_key);
+function launchPDF(dirname,filename,pageid){
+    //console.log('launching PDF: ' + filename);                             
+    //console.log('dirname: ' + dirname,'filename: ' + filename,'counter_key: ' + counter_key);
+    //return;
     
     window.requestFileSystem(
             LocalFileSystem.PERSISTENT, 0, 
@@ -408,6 +548,8 @@ function launchPDF(dirname,filename,counter_key){
                 var filePath = dirname + "/" + filename;
                 //alert('PDF file filePath: ' + filePath);
                 
+                
+                  
                  /*
                     * This method (getFile) is used to look up a directory. It does not create a non-existent direcory.
                     * Args:
@@ -423,12 +565,13 @@ function launchPDF(dirname,filename,counter_key){
                             window.plugins.fileOpener.open(entry.toURL());
                             
                             //update the counts table
-                            counterUpdate(counter_key);  //found on jobaids.js
+                            //counterUpdate(counter_key);  //found on jobaids.js
                              
                         },
                         function(error){
-                            //alert("No Video Found: " + JSON.stringify(error) + "\n Switching to Default Video.");
-                            alert("File not found.");
+                            $('#'+pageid + ' #flashpopup .statusmsg').html('File Not Found');
+                            $('#'+pageid + ' #flashpopup').popup('open');
+                            setTimeout(function(){$('#'+pageid + ' #flashpopup').popup('close')},2000);
                         }
                  );
                 
@@ -440,25 +583,15 @@ function launchPDF(dirname,filename,counter_key){
               
 }
 
-function setHeaderNotificationCount(pageid){   
-    //if logged in and there is a notification to attend to
-    if(globalObj.loggedInUserID>0 && globalObj.totalNotificationCount>0){
-        $('#' + pageid + ' #notification_txt_h').removeClass('hidden');
-        console.log('setHeaderNotificationCount: ' + globalObj.totalNotificationCount);
-        $('.noticecount').html(globalObj.totalNotificationCount);
-    }
-    else{
-        $('#' + pageid + ' #notification_txt_h').addClass('hidden');
-    }
-}
-
 
 function createHeader(pageid,pageheading){    
     //if(pageid=='mainpage')
        //alert('loggedin: ' + globalObj.loggedInUserID + ' admin: ' + adminObj.adminID);
     //logo
     var html =      '<div id="logo_icon_h">' +
-                        '<img src="img/logo_icon.png" >'; 
+                        '<a class="" href="index.html">' +
+                            '<img src="img/logo_icon.png" >'; 
+                        '</a>';
                     
                     if(globalObj.currentPage != 'mainpage' && globalObj.sandboxMode==false){
                         html += '<a class="homeicon" href="index.html"><img class="floatright" src="img/home-icon.png" ></a>';
@@ -475,7 +608,8 @@ function createHeader(pageid,pageheading){
                         //quick menu
                         '<div id="menu_icon_h">' +
                             '<a href="#quickMenu" data-rel="popup" data-position-to="origin">' +
-                                '<img src="img/menu_icon.png" />' +
+                                //'<img src="img/menu_icon.png" />' +
+                                'MENU' +
                             '</a>' +
                          '</div>' + 
 
@@ -513,13 +647,13 @@ function createHeader(pageid,pageheading){
                                 '<li data-icon="false"><a href="training_home.html" id="context_traininghomepage">Training</a></li>' +
                                 '<li data-icon="false"><a href="" onclick="accessTests();" id="context_testpage">Take Test</a></li>' +
                                 '<li data-icon="false"><a href="job_aids.html" id="context_jobaidspage">Job Aids</a></li>' +
-                                '<li data-icon="false"><a href="#" id="page" onclick="menuClose(); accessStandingOrder(\'standing_order.pdf\');">Standing Order</a></li>';
+                                '<li data-icon="false"><a href="guidelines.html" id="context_guidelinespage">Guidelines</a></li>';
 
             html +=             (globalObj.loggedInUserID == adminObj.adminID) ? 
-                                            '<li data-icon="false"><a href="admin.html" id="context_adminpage">Admin Area</a></li>' : '' ;
+                                            '<li data-icon="false"><a href="admin.html" id="context_adminpage">Admin Page</a></li>' : '' ;
 
             html +=             (globalObj.loggedInUserID <= 0) ? //no logged in user
-                                    '<li data-icon="false"><a href="" onclick="accessProfile();" id="context_loginpage">Log In</a></li>':
+                                    '<li data-icon="false"><a href="" onclick="quickMenuLogin();" id="context_loginpage">Log In</a></li>':
                                     '<li data-icon="false"><a href="#" onclick="menuClose(); logout();">Log Out</a></li>';
 
                                 //<li data-icon="false"><a href="printdb.html" id="printdb">Print DB</a></li>
@@ -532,7 +666,7 @@ function createHeader(pageid,pageheading){
                               
              
            $('#' + pageid + ' .header').html(html)
-           
+                      
            //hide all header links in sandbox mode
            if(globalObj.sandboxMode==true){
                //$('#' + pageid + ' .header > div > a').attr('href','#');
@@ -540,6 +674,7 @@ function createHeader(pageid,pageheading){
            }
              
            $("#"+globalObj.currentPage + " #quickMenu #context_" + globalObj.currentPage).addClass('active');
+
 }
 
 function menuClose(){
@@ -560,13 +695,13 @@ function getQuickMenuContentsForHome(){
                                 '<li data-icon="false"><a href="training_home.html" id="context_traininghomepage">Training</a></li>' +
                                 '<li data-icon="false"><a href="" onclick="accessTests();" id="context_testpage">Take Test</a></li>' +
                                 '<li data-icon="false"><a href="job_aids.html" id="context_jobaidspage">Job Aids</a></li>' +
-                                '<li data-icon="false"><a href="#" onclick="menuClose(); accessStandingOrder(\'standing_order.pdf\');" >Standing Order</a></li>';
+                                '<li data-icon="false"><a href="guidelines.html" id="context_guidelinespage">Guidelines</a></li>';
 
         html +=             (globalObj.loggedInUserID == adminObj.adminID) ? 
-                                        '<li data-icon="false"><a href="admin.html" id="context_adminpage" >Admin Area</a></li>' : '' ;
+                                        '<li data-icon="false"><a href="admin.html" id="context_adminpage" >Admin Page</a></li>' : '' ;
 
         html +=             (globalObj.loggedInUserID <= 0) ? //no logged in user
-                                '<li data-icon="false"><a href="" onclick="accessProfile();" id="context_loginpage">Log In</a></li>':
+                                '<li data-icon="false"><a href="" onclick="quickMenuLogin();" id="context_loginpage">Log In</a></li>':
                                 '<li data-icon="false"><a href="#" onclick="menuClose(); logout();">Log Out</a></li>';
 
                             //<li data-icon="false"><a href="printdb.html" id="printdb">Print DB</a></li>
@@ -599,7 +734,7 @@ function createFooter(pageid){
                     
                     '<div id="footer_text3" class="hidden">' +
                         '<strong>Logged in as:</strong>' +
-                        '<div id="loggedinusername">Demola Olaade Demola</div>' +
+                        '<div id="loggedinusername"></div>' +
                     '</div>';
 
             $('#' + pageid + ' .footer').html(html);
@@ -611,6 +746,8 @@ function createFooter(pageid){
 
 
 function showFooterUser(){
+    console.log('showFooterUser showFooterUser');
+    
     //show the footer logged in user
     if(globalObj.loggedInUserID>0){
         //footer logged-in-as info
@@ -633,3 +770,13 @@ function showFooterUser(){
     }
     
 }
+
+
+$('.dropdown-toggle').click(function(e) {
+  e.preventDefault();
+  setTimeout($.proxy(function() {
+    if ('ontouchstart' in document.documentElement) {
+      $(this).siblings('.dropdown-backdrop').off().remove();
+    }
+  }, this), 0);
+});

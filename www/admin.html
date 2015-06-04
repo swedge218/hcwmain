@@ -38,12 +38,11 @@
                             
 
                           <div id="coll_usage" data-role="collapsible" data-icon="false" data-collapsed="false"  class="nomargin nobackground nopadding">
-                              <h1 id="sidebar-collapsible-link" >
-                                    <!--Usage Stats-->
-                                    <a id="usagestats" href="#" class="textfontarial15" style="margin-left: 16px !important; padding-left: 0 !important;">Usage Stats</a>
+                                <h1 id="sidebar-collapsible-link" class="usagestatsh1">
+                                    <span id="usagestats" class="textfontarial15" style="padding-left: 0 !important;">Usage Stats</span>
                                 </h1>
 
-                                  <ul data-role="listview" data-icon="false">
+                                  <ul data-role="listview" data-icon="false" class="nomargintop">
 
                                      <li  data-icon="false" class="noborder">
                                          <a href="#" id="trainingstats" onclick="showTrainingStats()" class="textfontarial12 paddthree marginleft20">Training</a>
@@ -105,6 +104,15 @@
 
                  </div> 
                  
+                 <!--this is the flashpopup -->
+                 <div class="noborder" data-role="popup" id="flashpopup" data-overlay-theme="f" data-dismissible="false">
+                    <div class="popup_body" style="min-width: 120px !important; width: auto;">
+                        <p class="statusmsg textcenter"></p>
+                    </div>
+                </div>
+                <!--this is the flashpopup -->
+                
+                
                  <!--this is the status popup-->
                  <div class="noborder" data-role="popup" id="statusPopup" data-overlay-theme="f" data-dismissible="false">
                     <!--<a href="#" data-rel="back" data-role="button" data-theme="d" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>-->

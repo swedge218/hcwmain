@@ -138,36 +138,49 @@
                  </div> 
   
                  
+                 <!--this is the flashpopup -->
+                 <div class="noborder" data-role="popup" id="flashpopup" data-overlay-theme="f" data-dismissible="false">
+                    <div class="popup_body" style="min-width: 120px !important;">
+                        <p class="statusmsg textcenter"></p>
+                    </div>
+                </div>
+                <!--this is the flashpopup -->
+                 
                  <!--test popup-->
-                 <div class="noborder" data-role="popup" id="testPopup" data-overlay-theme="f" data-dismissible="false">
+                 <div class="noborder" data-role="popup" id="testPopup" data-overlay-theme="f" data-dismissible="false" style="width: 500px;">
                     <div class="popup_header">mTrain</div>
 
-                    <div class="popup_body" >
+                    <div class="popup_body">
                         <p class="statusmsg">
                             You have completed necessary training for this module.<br/>
-                             Would you like to take the module test now?
+                            Though optional, users are strongly advised to read training guides before
+                            taking post-tests for any module<br/><br/>
+                            
+                            <!--Would you like to take the module test now?-->
+                            What would you like to do?
                         </p>
                     </div>
                     
                     <div class="popup_footer">
-                        <a id="cancelbutton" class="pagebutton footerbutton width40" onclick="" 
-                         data-role="button"  data-inline="true" data-mini="true">No, not yet</a>
-                        <a id="okbutton" class="pagebutton footerbutton width40" onclick="" 
-                         data-role="button" data-inline="true" data-mini="true">Yes, take me to test</a>
+                        <a id="guidebutton" class="pagebutton footerbutton width30" onclick="quitPopupToGuide();" 
+                         data-role="button"  data-inline="true" data-mini="true">Read Guide</a>
+                        <a id="okbutton" class="pagebutton footerbutton width30" onclick="" 
+                         data-role="button" data-inline="true" data-mini="true">Take post-test</a>
+                        <a id="cancelbutton" class="pagebutton footerbutton width20" onclick="" 
+                         data-role="button" data-inline="true" data-mini="true">Cancel</a>
                     </div>
                     
                 </div>
                 <!--test popup-->
 
-                <!--test popup-->
-                 <div class="noborder" data-role="popup" id="guidePopup" data-overlay-theme="f" data-dismissible="false">
+                <!--guide popup-->
+                 <div class="noborder" data-role="popup" id="guidePopup" data-overlay-theme="f" data-dismissible="false" style="width: 500px;">
                     <div class="popup_header">mTrain</div>
 
                     <div class="popup_body" >
                         <p class="statusmsg">
-                            If you have thoroughly read the training guide then you can <br/>
-                            take the test for this module.<br/><br/>
-                            Would you like to take the test now?
+                            You are yet to take all the video trainings in this module.<br/>
+                            You are advised to complete the video trainings to qualify for taking the post-test for this module<br>
                         </p>
                     </div>
                     
@@ -175,11 +188,11 @@
                         <a id="cancelbutton" class="pagebutton footerbutton width40" onclick="" 
                          data-role="button"  data-inline="true" data-mini="true">No, not yet</a>
                         <a id="okbutton" class="pagebutton footerbutton width40" onclick="" 
-                         data-role="button" data-inline="true" data-mini="true">Yes, take me to test</a>
+                         data-role="button" data-inline="true" data-mini="true">OK</a>
                     </div>
                     
                 </div>
-                <!--test popup-->
+                <!--guide popup-->
 
                   <!--this is the status popup-->
                     <div class="noborder" data-role="popup" id="statusPopup" data-overlay-theme="f" data-dismissible="false">

@@ -31,6 +31,10 @@
                         {
                             "xml": "<feature name=\"NetworkStatus\"><param name=\"android-package\" value=\"org.apache.cordova.networkinformation.NetworkManager\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"OrientationLock\"><param name=\"android-package\" value=\"com.plugin.phonegap.OrientationLock\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -76,6 +80,9 @@
         },
         "org.apache.cordova.network-information": {
             "PACKAGE_NAME": "com.tp.mTrain"
+        },
+        "com.phonegap.plugins.OrientationLock": {
+            "PACKAGE_NAME": "com.tp.hcwdeploy"
         }
     },
     "dependent_plugins": {}

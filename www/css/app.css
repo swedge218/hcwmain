@@ -41,7 +41,7 @@ html{height: 100%;}
     box-sizing: border-box;
     overflow-x: hidden !important;
 }
-#content{padding: 3% 0 !important; overflow: hidden !important;}
+#content{padding: 3% 0 !important; overflow: hidden !important; position: relative;}
 
 .header {    
     background-color:#003366;
@@ -118,6 +118,10 @@ div.currentheaderlink:active, div.currentheaderlink a:active{
     font-weight: bold;
     font-family: Arial;
     letter-spacing: 1px;
+}
+
+.header #pageheading a{
+    color: #fff; text-decoration: none;
 }
 
 .header #title_txt_h
@@ -209,13 +213,21 @@ div.currentheaderlink:active, div.currentheaderlink a:active{
 .header #menu_icon_h { 
     float: right; 
     text-align: center;
-    width: 9%;
+    width: 11%;
 }
 
-.header #menu_icon_h a{ display: block; padding: 31% 0%; }
+.header #menu_icon_h a{ 
+    display: block; 
+    padding: 28% 0% 32%;
+    color: #fff; text-decoration: none; font-size: 14px;
+}
 .header #menu_icon_h:active {background-color: #507eab; }
 .header #menu_icon_h a:active {background-color: #507eab; }
 /*.header #menu_icon_h a img{ margin-top: 29%; }*/
+
+#mainpage .header #menu_icon_h a{
+    padding: 9% 0%;
+}
 
 
 /*Other pages header formating with homepage icon*/
@@ -333,9 +345,31 @@ div.currentheaderlink:active, div.currentheaderlink a:active{
     min-height: 30px;
 }
 
+.certrowtext{
+    float: left !important;
+    margin-top: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.gradeLongText{
+    float: left;
+    margin: 10px 20px 20px;
+    font-weight: bold;
+    width: 90%;
+    text-align: center;
+}
+
+
+
 #question li{display: inline-block; text-align: left;}
 #question li div:first-child{display: inline-block; text-align: left;}
 #question li div:last-child{display: initial; }
+
+.pretestbar{
+    background-color: #ccc !important;
+    border:1px solid #ccc !important;
+}
 
 
 .sidebar ul#sidebar_ul li
@@ -377,6 +411,12 @@ div.currentheaderlink:active, div.currentheaderlink a:active{
     /*background: url(../img/s-active-link.png) right no-repeat;*/
     background-color: #cecdcd !important;
 }
+
+/*usage stats is an exception*/
+.sidebar ul#sidebar_ul .usagestatsh1 a:active{
+    background-color: none !important;
+}
+
 
 /*this out with leke*/
 .c-header
@@ -503,7 +543,16 @@ margin-right: 2px;
     padding:1% 2%;
 }
 
+/* for those pages that should not have scrolls */
+div.focus-area.noscroll{
+    overflow-y: auto !important;
+}
+
 video { margin-top: -20px;}
+
+video::-webkit-media-controls-fullscreen-button {
+    display: inline-block !important;
+}
 
 .training-container{
     margin-top: -10px !important;
@@ -562,6 +611,8 @@ a#prevvideo:active span, #nextvideo:active span { background-color: #507eab; col
 .content-listing li p {
     padding: 1% 0;
 }
+#testpage .content-listing li p { padding: 0% 0; }
+
 .content-listing li p span {
     float:  right;
 }
@@ -612,7 +663,7 @@ ul.content-listing2 li:active, ul.content-listing2 li:active p {
     border: 1px solid 	#003366;
     padding: 5px 3px;
     box-sizing: border-box;
-    
+    font-weight: bold;
 }
 
 input.error {
@@ -646,8 +697,9 @@ input[type="text"]{
     margin-top: 0px !important;
     bottom: 0;  
     padding-bottom: 4px;
-    z-index: 10;
+    z-index: 2000;
 }
+
 .footer #footer_text1
 {
     width:25%;
@@ -751,6 +803,9 @@ input[type="text"]{
 .textccc{color: #ccc !important;}
 .text999{color: #999 !important;}
 .error { color:red; }
+.amber{ color: amber !important; }
+.green{ color: green !important; }
+
 
 small{font-family: Arial !important; font-size: 11px !important;}
 
@@ -773,6 +828,7 @@ small{font-family: Arial !important; font-size: 11px !important;}
 .centerpage {margin: auto !important;}
 .floatleft {float: left !important;}
 .floatright {float: right !important;}
+.floatnone {float: none !important;}
 
 
 /*******    CONTROLS   *******/
@@ -792,7 +848,7 @@ a.pagebutton:active {background: #b6c1cd !important; }
     background: #036 !important;
     color: #fff !important;
     border: 10px !important;
-    border-radius: 0!important;
+    border-radius: 5px !important;
     text-decoration: none;
 }
 .pagebuttonpadding{
@@ -800,20 +856,40 @@ a.pagebutton:active {background: #b6c1cd !important; }
 }
 
 .actionbutton{
-    border: 0;
-    color: white;
-    padding: 4px 10px;
-    background: green;
-    border-radius: 5px;
-    font-weight: bold;
+    border: 0 !important;
+    color: white !important;
+    padding: 4px 10px !important;
+    background: green !important;
+    border-radius: 5px !important;
+    font-weight: bold !important;
     /*margin-top: -5px;*/
 }
 .actionbutton:active { background: #9cb99c !important; }
+
+.actionbutton span.ui-btn-inner{ border: 0 !important;}
+
+.amberbutton { background: #C85F20 !important; }
+.amberbutton:active {background: #666;}
+
+.redbutton { background: #ff0000 !important; }
+.redbutton:active {background: #666;}
+
+.maroonbutton { background: #660000 !important; }
+.maroonbutton:active {background: #666;}
+
+.greenbutton { background: green !important; }
+.greenbutton:active {background: #9cb99c;}
 
 .contextbar,.cbar{
     background: #036;
     color: #fff;
     padding: 1%;
+}
+
+.context-bar-holder{
+    position: absolute;
+    width: 66.5%;
+    /*top: 200px;*/
 }
 
 .footerbutton{
@@ -826,6 +902,7 @@ a.pagebutton:active {background: #b6c1cd !important; }
 }
 
 .width10{width: 10% !important;}
+.width15{width: 15% !important;}
 .width20{width: 20% !important;}
 .width25{width: 25% !important;}
 .width30{width: 30% !important;}
@@ -837,6 +914,7 @@ a.pagebutton:active {background: #b6c1cd !important; }
 .width90{width: 90% !important;}
 .width95{width: 95% !important;}
 .width98{width: 98% !important;}
+.width100{width: 100% !important;}
 
 #msg-box{min-width: 70% !important;}
 
@@ -849,10 +927,12 @@ a.pagebutton:active {background: #b6c1cd !important; }
     border: 0 !important;    
 }
 
+.popuphedericon{float: left; margin-top: -2px; margin-right: 10px; }
+
 .popup_header {
     /*background: #036;*/
     background: #7F99B2;
-    color: #000;
+    color: #fefefe;
     text-align: center;
     padding: 7px;
     font-weight:bold;
@@ -879,6 +959,7 @@ a.pagebutton:active {background: #b6c1cd !important; }
     border: 0 !important; 
     min-width: 100px;
 }
+
 
 .wizardbigtext{
     padding: 10% 2% 5%;
@@ -911,9 +992,12 @@ a.pagebutton:active {background: #b6c1cd !important; }
 
 #adminpage .focus-area #choicelist li:active{background: none !important; color: #000 !important;}
 
+.admin-radio span.ui-icon{display: none;}
+.user-view-admin-label {margin-right: -30px;}
+
+
+
 li#coloredbgcontent label:active .ui-btn-inner{ background-color: #cecdcd !important; }
-
-
 
 .lockbutton{
     background: url(../img/lock.png)  !important;
@@ -927,18 +1011,20 @@ h1#sidebar-collapsible-link a{padding: 0 0 0 9% !important;}
 h1#sidebar-collapsible-link span.ui-li-count{}
 h1#sidebar-collapsible-link span.ui-btn-inner{
     	border-top: none !important;
-        border-bottom:  0px solid 	#ccc !important;
-        border-color: 		#ccc !important;
+        border-bottom:  0px solid #ccc !important;
+        border-color: 	#ccc !important;
         font-size: 15px !important;  
         font-family: Arial !important; 
         font-weight:normal !important;
         padding-left: 0px !important;
 }
+
 h1#sidebar-collapsible-link span.ui-btn-inner .ui-icon {display:none !important;}
 #notification_li { padding:5px 0 5px 0; }
 #notification_li div.ui-collapsible-inset { margin: 0 !important; }
 h1#sidebar-collapsible-link span.ui-btn-text {display: block !important;}
 
+#profilepage h1#sidebar-collapsible-link a{padding: 0 0 0 5.5% !important;}
 
 /*
     OVERRIDES
@@ -1207,3 +1293,8 @@ margin-bottom:0 !important;
     
     
 }/* end media query */
+
+
+.dropdown-backdrop {
+    position: static;
+}

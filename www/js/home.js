@@ -12,7 +12,7 @@ $(document).delegate("#mainpage", "pagebeforecreate", function() {
         showHomeIcons();
         setUpAdminObject();
         createHeader('mainpage','');
-        createFooter('mainpage');
+        //createFooter('mainpage');
         setUpSettingsObject();
     }
     else{
@@ -26,9 +26,6 @@ $(document).delegate("#mainpage", "pagebeforecreate", function() {
 $(document ).delegate("#mainpage", "pageshow", function() {
     globalObj.currentPage = 'mainpage';
     
-    //show the footer logged in user
-    showFooterUser();
-    
     //redo notification counts for home. Be sure.
     setNotificationCounts();
     
@@ -40,6 +37,11 @@ $(document ).delegate("#mainpage", "pageshow", function() {
         createFooter('mainpage');
    },200);
    
+   //show the footer logged in user
+//    setTimeout(function(){
+//        showFooterUser();
+//    },520);
+   
    /*
     * Very important: To ensure validator considers hidden fields
     */
@@ -49,6 +51,8 @@ $(document ).delegate("#mainpage", "pageshow", function() {
       
    //wizard form validation
    $('#wizardForm').validate({
+           onfocusout: injectTrim($.validator.defaults.onfocusout),
+           
            rules:{
                facname:{required:true, minlength:2}, 
                facid:{required:true, min:0, digits:true}, 
@@ -58,15 +62,15 @@ $(document ).delegate("#mainpage", "pageshow", function() {
                
                firstname:{required:true, minlength:2}, 
                lastname:{required:true, minlength:2}, 
-               email:{required:true, email:true},
+               email:{email:true},
                phonenumber:{required:true,digits:true, minlength:8},
                cadrewatch:{required:true,min:1},
                genderwatch:{required:true,min:1},
                questionwatch:{required:true,min:1},
                answer: {required:true},
                
-               username:{required:true, minlength:6}, 
-               password:{required:true, minlength:6}, 
+               username:{required:true, minlength:3, hasNoSpaces: true}, 
+               password:{required:true, minlength:3}, 
                confirm:{required:true, equalTo: "#password"}
            },
            messages:{
@@ -78,48 +82,71 @@ $(document ).delegate("#mainpage", "pageshow", function() {
                
                firstname:{required:'Cannot be empty', minlength:'2 characters minimum'}, 
                lastname:{required:'Cannot be empty', minlength:'2 characters minimum'}, 
-               email:{required:'Cannot be empty', email:'Enter valid email'},
+               email:{email:'Enter valid email'},
                phonenumber:{required:'Cannot be empty', digits:'Enter numbers only', minlength:'8 characters minimum'},
                cadrewatch:{required:'Make a selection', min:'Make a selection'},
                genderwatch:{required:'Make a selection', min:'Make a selection'},
                questionwatch:{required:'Make a selection', min:'Make a selection'},
                answer: {required:'Cannot be empty'},
                
-               username:{required:'Cannot be empty', minlength:'6 characters minimum'}, 
-               password:{required:'Cannot be empty', minlength:'6 characters minimum'}, 
+               username:{required:'Cannot be empty', minlength:'3 characters minimum', hasNoSpaces: 'Spaces not allowed'}, 
+               password:{required:'Cannot be empty', minlength:'3 characters minimum'}, 
                confirm:{required:'Cannot be empty', equalTo:'Password Mismatch'}
            }
         });//close validate
+        
+        jQuery.validator.addMethod("hasNoSpaces", function(value, element) {
+            //console.log('has_spacesssssss: ');
+            if(value.split(" ").length > 1){
+                return false;
+            }
+            return true;
+        }, "Spaces not allowed");  //the message here will only be used if none set for unique_username in messages block
+        
+        function injectTrim(handler) {
+                console.log('inside injectTrim');
+                return function (element, event) {
+                  if (element.tagName === "TEXTAREA" || (element.tagName === "INPUT" && element.type !== "password")) {
+                    element.value = $.trim(element.value);
+                  }
+                  return handler.call(this, element, event);
+                };
+            }
+       
+        
 });
 
 
 $(document ).delegate("#mainpage", "pageinit", function() {
     console.log('pageinit b4 device');
     
-    
     //quick menu items close after every click
     $('#quickMenu ul li a').click(function(){
         $('#quickMenu').popup("close");
-    })
-    
+    })   
     
     
     document.addEventListener("deviceready", onDeviceReady, false);            
         function onDeviceReady(){
+            //lock the screen to landscape
+            //window.plugins.orientationLock.lock("landscape");
+
+
             //checkConnection();
             openDb();
+            
             console.log('pageinit');
             checkForFirstTimeUse();
-            
+
             //get and set the admin user id on start up...Very Handy in other places
             //setUpAdminObject();
             
             //document.addEventListener("offline", function(){alert("OFFline");}, false);
             //document.addEventListener("online", function(){alert("ONline");}, false);
-            document.addEventListener("orientationChanged", function(){navigator.screenOrientation.set('landscape');});
+            //document.addEventListener("orientationChanged", function(){navigator.screenOrientation.set('landscape');});
                        
             //log a user in 
-            //logUserIn(1);
+           //logUserIn(1);
  }
         
         
@@ -168,11 +195,18 @@ $(document ).delegate("#mainpage", "pageinit", function() {
                 $('#trainingpage #twobuttonspopup').popup('open');
             }
             else if($.mobile.activePage.is('#questionpage')){
+                $("#questionpage .twobuttons .popup_footer").removeClass('hidden');
+                $("#questionpage .twobuttons .popup_header").removeClass('hidden');
                 $('#questionpage .twobuttons .statusmsg').html('<p>Are you sure you want to leave?</p>');
                 $('#questionpage .twobuttons #cancelbutton').attr('onclick','$("#questionpage #twobuttonspopup").popup("close")');
                 $('#questionpage .twobuttons #okbutton').attr('onclick','history.go(-2)');
                 $('#questionpage #twobuttonspopup').popup('open');
             }
+//            else if($.mobile.activePage.is('#testpage')){
+//                globalObj.backButtonPressed = true;
+//                //alert('globalObj.backButtonPressed tt: ' + globalObj.backButtonPressed);
+//                navigator.app.backHistory();
+//            }
             else{
                 navigator.app.backHistory();
             }
@@ -217,10 +251,15 @@ function showHomeIcons(){
                             '<p>Job Aids </p>' +
                       '</a>' +
 
-                      '<a class="iconblock1" href="#" onclick="accessStandingOrder(\'standing_order.pdf\')" >' +
-                            '<img src="img/standing-order-icon.png" />' +
-                            '<p>Standing Order</p>' +
-                       '</a>' +
+//                      '<a class="iconblock1" href="#" onclick="accessStandingOrder(\'standing_order.pdf\')" >' +
+//                            '<img src="img/standing-order-icon.png" />' +
+//                            '<p>Standing Order</p>' +
+//                       '</a>' +
+                         
+                         '<a class="iconblock1" href="guidelines.html" >' +
+                              '<img src="img/standing-order-icon.png" />' +
+                              '<p>Guidelines</p>' +
+                         '</a>' +
                 '</div>';
             
             
@@ -231,7 +270,7 @@ function showHomeIcons(){
                         '<p>My Profile</p>' +
                     '</a>' +
 
-                    '<a href="#" class="iconblock2" href="" onclick="">' +
+                    '<a href="#" class="iconblock2" href="" onclick="accessRegArea();">' +
                         '<img src="img/reg-icon.png" />' +
                         '<p>Registration</p>' +
                     '</a>' +

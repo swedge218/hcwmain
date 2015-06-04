@@ -49,7 +49,7 @@
                  
                  
                  <div class="c-header">
-                     <div class="c-title">Emergency Obstetric Care</div>
+                     <div class="c-title"></div>
                  </div>
   
 
@@ -145,7 +145,7 @@
                          
                          <!--PROMPTS-->
                          <!--    question tip popup  -->
-                         <div class="noborder" data-role="popup" id="tipPopup" data-overlay-theme="f" data-dismissible="false">
+                         <div class="noborder" data-role="popup" id="tipPopup" data-overlay-theme="f" data-dismissible="false" >
                                <!--<a href="#" data-rel="back" data-role="button" data-theme="d" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>-->
                                <div class="popup_header">
                                    <a id="status" class="notextdecoration textwhite" href="#" data-icon="false" data-inline="true">
@@ -153,31 +153,38 @@
                                     </a>
                                </div>
 
-                               <div class="popup_body" >
-                                   <p id="tipcontent" class=""></p>
+                               <div class="popup_body" style="max-width: 500px !important;">
+                                   <p id="tipcontent" class="" style="max-width: 400px !important;"></p>
                                </div>
 
-                               <div class="popup_header">
+                               <div class="popup_footer">
                                    <a class="pagebutton footerbutton width95" id="tipseen" onclick="" 
                                     data-role="button"  data-inline="true" data-mini="true">OK</a>
                                </div>
 
                            </div>
                          
+                         <!--this is the flashpopup -->
+                            <div class="noborder" style="min-width: 100px;" data-role="popup" id="flashpopup" data-overlay-theme="f" data-dismissible="false">
+                               <div class="popup_body" >
+                                   <p class="statusmsg textcenter"></p>
+                               </div>
+                           </div>
+                           <!--this is the flashpopup -->
                          
                          <!--selection prompt-->
                             <div class="noborder" data-role="popup" id="selectionPopup" data-overlay-theme="f" data-dismissible="false">
                                <!--<a href="#" data-rel="back" data-role="button" data-theme="d" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>-->
-                               <div class="popup_header">mTrain</div>
+                               <!--<div class="popup_header">mTrain</div>-->
 
                                <div class="popup_body" >
-                                   <p class="">Please choose an answer</p>
+                                   <p class="textcenter">Please choose an answer</p>
                                </div>
 
-                               <div class="popup_header">
+                               <!--<div class="popup_header">
                                    <a class="pagebutton footerbutton width95" onclick="$('#selectionPopup').popup('close'); return false;" 
                                     data-role="button"  data-inline="true" data-mini="true">OK</a>
-                               </div>
+                               </div>-->
 
                            </div>
                            <!--selection prompt-->
@@ -185,7 +192,7 @@
                            <!--the confirm reset popup--> 
                             <div class="twobuttons noborder" data-role="popup" id="twobuttonspopup" data-overlay-theme="f" data-dismissible="false">
 
-                                <div class="popup_header"></div>
+                                <div class="popup_header">mTrain</div>
 
                                 <div class="popup_body">
                                     <p class="statusmsg"></p>
